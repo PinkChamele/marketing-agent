@@ -9,6 +9,9 @@ import {
   MastraPlatformExporter,
   SensitiveDataFilter,
 } from '@mastra/observability';
+import { init as searchInit } from '@/modules/search';
+
+searchInit();
 
 export const mastra = new Mastra({
   workflows: {},
