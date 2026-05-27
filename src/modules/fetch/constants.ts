@@ -1,0 +1,2 @@
+export const SUSPICIOUSLY_SHORT_THRESHOLD = 200;
+export const DEFAULT_TIMEOUT_MS = 30_000;

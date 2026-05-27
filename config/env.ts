@@ -8,6 +8,7 @@ const envSchema = z.object({
   EXA_API_KEY: z.string().optional(),
   BRAVE_API_KEY: z.string().optional(),
   OPENROUTER_API_KEY: z.string().min(1),
+  FIRECRAWL_API_KEY: z.string().trim().nonempty(),
 });
 
 export const env = envSchema.parse(process.env);
