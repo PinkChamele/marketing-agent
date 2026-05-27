@@ -10,8 +10,10 @@ import {
   SensitiveDataFilter,
 } from '@mastra/observability';
 import { init as searchInit } from '@/modules/search';
+import { init as fetchInit } from '@/modules/fetch';
 
 searchInit();
+fetchInit();
 
 export const mastra = new Mastra({
   workflows: {},
