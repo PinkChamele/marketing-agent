@@ -4,6 +4,7 @@ dist
 .mastra
 .env.development
 .env
+data/
 *.db
 *.db-*
 .netlify
