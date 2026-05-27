@@ -1,0 +1,10 @@
+node_modules
+dist
+.mastra
+.build
+.agents
+src/mastra/public
+package-lock.json
+*.db
+*.db-journal
+pino-detection.js
