@@ -1,9 +1,9 @@
-import { SUSPICIOUSLY_SHORT_THRESHOLD } from "./constants";
-import { FetchError } from "./error";
-import * as Factory from "./factory";
-import type { FetchRequest } from "./types";
+import { SUSPICIOUSLY_SHORT_THRESHOLD } from './constants';
+import { FetchError } from './error';
+import * as Factory from './factory';
+import type { FetchRequest } from './types';
 
-export type { FetchRequest, FetchResult, FetchProvider } from "./types";
+export type { FetchRequest, FetchResult, FetchProvider } from './types';
 
 export async function fetchUrl(request: FetchRequest) {
   const chain = Factory.getChain();
@@ -32,9 +32,9 @@ export async function fetchUrl(request: FetchRequest) {
 
   throw new FetchError(
     `All fetch providers failed for ${request.url}: ` +
-      errors.map((e) => `[${e.provider}] ${e.message}`).join("; "),
+      errors.map((e) => `[${e.provider}] ${e.message}`).join('; '),
     request.url,
-    "chain",
+    'chain',
   );
 }
 
