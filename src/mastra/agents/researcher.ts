@@ -40,7 +40,12 @@ For each sub-topic (market trends, competitors, ICPs, regulations), repeat this 
   4. **Otherwise, fetch.** Call \`fetch-url\` to get the full page content.
      Snippets are not enough when you need narrative, quotes longer than a
      line, or context — they may be truncated or pulled from the wrong section.
-  5. Record findings in working memory, quoting the evidence you used (snippet
+  5. **If the fetch returns a \`blocked\` field**, the page was gated
+     (login-wall, paywall, captcha, or cookie-wall) and the markdown is
+     unreliable — do NOT quote from it. Fall back to the search snippet for
+     this URL, or move on to another source. Don't retry the same URL with
+     \`requiresJs: true\` — paywalls block the JS-capable provider too.
+  6. Record findings in working memory, quoting the evidence you used (snippet
      OR fetched content — note which) with the source URL.
 
 ### Triangulation (critical for quantitative claims)
