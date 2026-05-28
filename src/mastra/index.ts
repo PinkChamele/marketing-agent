@@ -17,6 +17,7 @@ import { verticalEntryWorkflow } from './workflows/vertical-entry';
 import { citationFormatScorer } from './scorers/citation-format.scorer';
 import { sourceDiversityScorer } from './scorers/source-diversity.scorer';
 import { citationIntegrityScorer } from './scorers/citation-integrity.scorer';
+import { companyFitScorer } from './scorers/company-fit.scorer';
 
 searchInit();
 fetchInit();
@@ -30,6 +31,7 @@ export const mastra = new Mastra({
     citationFormat: citationFormatScorer,
     sourceDiversity: sourceDiversityScorer,
     citationIntegrity: citationIntegrityScorer,
+    companyFit: companyFitScorer,
   },
   storage,
   logger: new PinoLogger({
