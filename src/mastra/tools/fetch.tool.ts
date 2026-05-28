@@ -43,9 +43,7 @@ export const fetchTool = createTool({
     fetchedAt: z.iso.datetime().describe(descriptions.output.fetchedAt),
     blocked: z
       .object({
-        reason: z
-          .enum(BlockReason)
-          .describe(descriptions.output.blockedReason),
+        reason: z.enum(BlockReason).describe(descriptions.output.blockedReason),
         signal: z.string().describe(descriptions.output.blockedSignal),
       })
       .optional()
