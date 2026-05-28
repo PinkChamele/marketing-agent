@@ -1,6 +1,6 @@
 // src/mastra/agents/researcher.ts
 import { Agent } from '@mastra/core/agent';
-import { model } from '../../modules/model/model-router';
+import { model } from '../../modules/model';
 import { researchMemory } from '../memory';
 import { webSearchTool } from '../tools/web-search.tool';
 import { fetchTool } from '../tools/fetch.tool';

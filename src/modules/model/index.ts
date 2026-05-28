@@ -3,6 +3,11 @@ import { getDailyModel } from './daily-model';
 import type { OpenRouterModel } from './openrouter-model';
 import { ModelRole } from './model-role.enum';
 
+export { ModelRole } from './model-role.enum';
+export type { OpenRouterModel } from './openrouter-model';
+export { openRouterModelSchema } from './openrouter-model';
+export { getDailyModel, refreshDailyModel, startDailyModelScheduler } from './daily-model';
+
 type RoleModelMap = Record<ModelRole, OpenRouterModel>;
 
 const DEFAULT_MODELS: RoleModelMap = {
@@ -17,9 +22,7 @@ const OVERRIDES: Partial<RoleModelMap> = {
   cheap: env.MODEL_CHEAP,
 };
 
-export function model(role: ModelRole): () => OpenRouterModel {
-  return () => getDailyModel() ?? OVERRIDES[role] ?? DEFAULT_MODELS[role];
-}
+export const model = (role: ModelRole) => () => getDailyModel() ?? OVERRIDES[role] ?? DEFAULT_MODELS[role]
 
 export const describeModels = () => {
   const daily = getDailyModel();
