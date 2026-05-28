@@ -1,9 +1,20 @@
-import { FetchProviderName } from './enums/provider-name.enum';
+import type { BlockReason } from './enums/block-reason.enum';
+import type { FetchProviderName } from './enums/provider-name.enum';
 
 export interface FetchRequest {
   url: string;
   /** Hint that the page is JS-heavy; providers may use this to skip cheaper paths. */
   requiresJs?: boolean;
+}
+export interface SignalGroup {
+  reason: BlockReason;
+  patterns: RegExp[];
+}
+
+export interface BlockedInfo {
+  reason: BlockReason;
+  /** What triggered detection (regex source or "title:..." marker), for debugging. */
+  signal: string;
 }
 
 export interface FetchResult {
@@ -17,6 +28,8 @@ export interface FetchResult {
   source: string;
   /** ISO timestamp of when the fetch completed. */
   fetchedAt: string;
+  /** Set when the page was reachable but content is gated/blocked. */
+  blocked?: BlockedInfo;
 }
 
 export interface FetchProvider {

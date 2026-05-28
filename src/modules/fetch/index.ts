@@ -1,9 +1,11 @@
 import { SUSPICIOUSLY_SHORT_THRESHOLD } from './constants';
+import { detectBlock } from './detect-block';
 import { FetchError } from './error';
 import * as Factory from './factory';
 import type { FetchRequest } from './types';
 
-export type { FetchRequest, FetchResult, FetchProvider } from './types';
+export { BlockReason } from './enums/block-reason.enum';
+export type { FetchRequest, FetchResult, FetchProvider, BlockedInfo } from './types';
 
 export async function fetchUrl(request: FetchRequest) {
   const chain = Factory.getChain();
@@ -15,7 +17,12 @@ export async function fetchUrl(request: FetchRequest) {
     try {
       const result = await provider.fetch(request);
       const isLast = provider === chain[chain.length - 1];
+      const blocked = detectBlock(result.title, result.markdown);
 
+      if (blocked) {
+        result.blocked = blocked;
+        return result;
+      }
       if (!isLast && result.markdown.length < SUSPICIOUSLY_SHORT_THRESHOLD) {
         continue;
       }
