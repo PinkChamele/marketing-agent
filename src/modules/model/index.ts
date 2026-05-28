@@ -23,14 +23,14 @@ const OVERRIDES: Partial<RoleModelMap> = {
 };
 
 export const model = (role: ModelRole) => () =>
-  getDailyModel() ?? OVERRIDES[role] ?? DEFAULT_MODELS[role];
+  OVERRIDES[role] ?? getDailyModel() ?? DEFAULT_MODELS[role];
 
 export const describeModels = () => {
   const daily = getDailyModel();
 
   return {
-    researcher: daily ?? OVERRIDES.researcher ?? DEFAULT_MODELS.researcher,
-    synthesizer: daily ?? OVERRIDES.synthesizer ?? DEFAULT_MODELS.synthesizer,
-    cheap: daily ?? OVERRIDES.cheap ?? DEFAULT_MODELS.cheap,
+    researcher: OVERRIDES.researcher ?? daily ?? DEFAULT_MODELS.researcher,
+    synthesizer: OVERRIDES.synthesizer ?? daily ?? DEFAULT_MODELS.synthesizer,
+    cheap: OVERRIDES.cheap ?? daily ?? DEFAULT_MODELS.cheap,
   };
 };
