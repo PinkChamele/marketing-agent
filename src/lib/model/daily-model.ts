@@ -40,18 +40,19 @@ export async function refreshDailyModel(): Promise<void> {
     const json: unknown = await res.json();
     const parsed = responseSchema.parse(json);
     const top = parsed.models[0];
-    const fullId = `openrouter/${top.id}` as OpenRouterModel;
-
-    currentDailyModel = fullId;
+    const rawId = top.id.replace(/^openrouter\//, '');
+    const fullId = `openrouter/${rawId}` as OpenRouterModel;
 
     await mkdir(dirname(STATE_FILE), { recursive: true });
     const tmp = `${STATE_FILE}.tmp`;
     await writeFile(
       tmp,
-      JSON.stringify({ id: top.id, name: top.name, updatedAt: new Date().toISOString() }, null, 2),
+      JSON.stringify({ id: rawId, name: top.name, updatedAt: new Date().toISOString() }, null, 2),
       'utf8',
     );
     await rename(tmp, STATE_FILE);
+
+    currentDailyModel = fullId;
 
     console.info(`Daily model refreshed: ${top.name} (${fullId})`);
   } catch (err) {
@@ -73,8 +74,9 @@ export function startDailyModelScheduler(): void {
   void (async () => {
     const persisted = await loadPersisted();
     if (persisted) {
-      currentDailyModel = `openrouter/${persisted.id}` as OpenRouterModel;
-      console.info(`Loaded persisted daily model: openrouter/${persisted.id}`);
+      const rawId = persisted.id.replace(/^openrouter\//, '');
+      currentDailyModel = `openrouter/${rawId}` as OpenRouterModel;
+      console.info(`Loaded persisted daily model: openrouter/${rawId}`);
     } else {
       console.info('No persisted daily model — will fetch on first opportunity');
     }
