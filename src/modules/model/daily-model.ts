@@ -46,8 +46,10 @@ async function fetchModel(): Promise<Model> {
   }
 
   const json: unknown = await res.json();
-  const { models: [top] } = responseSchema.parse(json);
-  
+  const {
+    models: [top],
+  } = responseSchema.parse(json);
+
   return {
     id: toOpenRouterId(top.id),
     name: top.name,
@@ -56,7 +58,7 @@ async function fetchModel(): Promise<Model> {
 
 async function persist(model: Model) {
   const tmp = `${STATE_FILE}.tmp`;
-  
+
   await mkdir(dirname(STATE_FILE), { recursive: true });
   await writeFile(
     tmp,

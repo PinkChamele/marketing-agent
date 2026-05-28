@@ -22,7 +22,8 @@ const OVERRIDES: Partial<RoleModelMap> = {
   cheap: env.MODEL_CHEAP,
 };
 
-export const model = (role: ModelRole) => () => getDailyModel() ?? OVERRIDES[role] ?? DEFAULT_MODELS[role]
+export const model = (role: ModelRole) => () =>
+  getDailyModel() ?? OVERRIDES[role] ?? DEFAULT_MODELS[role];
 
 export const describeModels = () => {
   const daily = getDailyModel();

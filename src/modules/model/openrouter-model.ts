@@ -7,7 +7,6 @@ import { OPENROUTER_MODEL_EXPR, OPENROUTER_PREFIX, OPENROUTER_PREFIX_EXPR } from
  */
 export type OpenRouterModel = `${typeof OPENROUTER_PREFIX}${string}/${string}`;
 
-
 export const openRouterModelSchema = z
   .string()
   .regex(OPENROUTER_MODEL_EXPR, {
