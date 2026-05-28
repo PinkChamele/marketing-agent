@@ -10,6 +10,8 @@ const descriptions = {
       'The search query. Be specific and topical (e.g. "US healthcare IT outsourcing market size 2025") rather than broad ("healthcare").',
     includeDomains:
       'Restrict results to these domains (hostnames only, e.g. "gartner.com"). Use to bias toward authoritative sources for the vertical. Omit to search the open web.',
+    excludeDomains:
+      'Drop results from these domains (hostnames only, e.g. "imarc.com"). Use to filter out known low-signal sources like SEO market-report vendors. Omit if no filtering is needed.',
     maxResults:
       'Maximum number of results to return. Typical values: 5 for quick lookups, 10-20 for broader scans. Higher values cost more and add noise.',
   },
@@ -30,6 +32,7 @@ export const webSearchTool = createTool({
   inputSchema: z.object({
     query: z.string().trim().nonempty().describe(descriptions.input.query),
     includeDomains: z.array(z.hostname()).optional().describe(descriptions.input.includeDomains),
+    excludeDomains: z.array(z.hostname()).optional().describe(descriptions.input.excludeDomains),
     maxResults: z.int().optional().describe(descriptions.input.maxResults),
   }),
   outputSchema: z
