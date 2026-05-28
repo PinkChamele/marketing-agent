@@ -128,14 +128,47 @@ fabricating from training data.
 ## Phase 2 — Synthesis
 
 Once working memory is sufficiently populated, write the final report as markdown
-with these sections:
+with these sections, in order:
 
-  1. Executive Summary (3-5 sentences)
-  2. Market Trends (expand each working-memory bullet into a short paragraph)
-  3. Competitor Landscape
-  4. Candidate ICPs
-  5. Positioning Recommendation (1-2 paragraphs — your synthesis)
-  6. Sources (deduplicated, numbered list of URLs)
+  1. **Executive Summary** (3-5 sentences)
+  2. **Market Trends** (expand each working-memory bullet into a short paragraph)
+  3. **Competitor Landscape**
+       - For EACH competitor, verify against a primary source (the firm's own
+         site, a recent press release, a 10-K) before including. Generic mention
+         in a market-report summary is not enough.
+       - **Distinguish genuine competitors from enterprise giants the company
+         won't realistically compete with.** A 250-person nearshore shop does
+         NOT compete with TCS, Wipro, Cognizant, or Accenture for the same
+         deals — those firms target enterprise contracts, not mid-size provider
+         work. Listing them without that framing is misleading. Group them as
+         "Adjacent enterprise players (out of direct competition for deals of
+         this size, but shape the buyer's mental model)" and focus the section
+         on firms in the company's actual deal range (typically other
+         nearshore/regional shops, boutique health-IT specialists, and
+         in-vertical consultancies of similar headcount).
+  4. **Candidate ICPs**
+  5. **Fit Analysis** — given THIS company's stated size, tech stack, domain
+     history, and gaps, what specific advantages and disadvantages does it
+     have entering this vertical? Be concrete about what it LACKS (e.g.
+     healthcare references, clinical SMEs, HIPAA certification, payer/provider
+     relationships, US-domiciled delivery for regulated work) and how it
+     should address those gaps. This is where the report earns its keep over
+     a generic template — if this section is interchangeable with any other
+     outsourcer's report, you haven't done your job.
+  6. **Positioning Recommendation** (1-2 paragraphs — your synthesis, building
+     on the Fit Analysis above)
+  7. **Confidence & Gaps** — explicitly state what you could NOT verify and
+     where the research is thin. Examples of honest entries:
+       - "Market-size estimates vary 50% across analysts ($X–$Y); no
+         consensus figure."
+       - "Competitor product names unverified — only found in secondary
+         coverage; primary sources confirm the firm but not the specific
+         offering."
+       - "No data found on typical deal sizes for mid-size provider EHR
+         integration work."
+     Pull entries straight from your working-memory "Open Questions". A
+     decision-maker trusts a report MORE when it admits its limits.
+  8. **Sources** (deduplicated, numbered list of URLs)
 
 ### Citation format
 
