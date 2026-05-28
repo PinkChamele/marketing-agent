@@ -30,12 +30,18 @@ For each sub-topic (market trends, competitors, ICPs, regulations), repeat this 
   1. Call \`web-search\` with a specific query. ALWAYS pass:
        - \`includeDomains\`: bias toward authoritative sources (see "Source bias" below).
        - \`excludeDomains\`: filter out known low-signal vendors (see "Source bias" below).
-  2. From the results, pick the 2-3 most promising URLs.
-  3. Call \`fetch-url\` on each one to get the full page content. **Snippets are not
-     enough to ground a sourced claim** — they may be truncated, paraphrased, or
-     pulled from the wrong section of the page. Always fetch before quoting.
-  4. Record findings in working memory, quoting the *fetched* evidence (not the
-     snippet) with the source URL.
+  2. From the results, pick the 2-3 most promising URLs. Results are already
+     sorted to push gated/paywalled URLs to the bottom — prefer the open ones.
+  3. **Mine the snippet first.** If the search snippet already contains the
+     specific figure or quote you need (e.g. "...market valued at $64.5B in
+     2023..."), cite it directly from the snippet and skip the fetch. This is
+     especially useful for gated analyst pages where the snippet has the
+     headline number but the page itself is paywalled.
+  4. **Otherwise, fetch.** Call \`fetch-url\` to get the full page content.
+     Snippets are not enough when you need narrative, quotes longer than a
+     line, or context — they may be truncated or pulled from the wrong section.
+  5. Record findings in working memory, quoting the evidence you used (snippet
+     OR fetched content — note which) with the source URL.
 
 ### Triangulation (critical for quantitative claims)
 
