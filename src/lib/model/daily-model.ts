@@ -89,6 +89,6 @@ export function startDailyModelScheduler(): void {
       void refreshDailyModel();
     }
 
-    setInterval(refreshDailyModel, REFRESH_INTERVAL_MS);
+    setInterval(() => void refreshDailyModel(), REFRESH_INTERVAL_MS);
   })();
 }
