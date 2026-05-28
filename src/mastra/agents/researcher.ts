@@ -9,6 +9,7 @@ import { citationFormatScorer } from '../scorers/citation-format.scorer';
 import { sourceDiversityScorer } from '../scorers/source-diversity.scorer';
 import { citationIntegrityScorer } from '../scorers/citation-integrity.scorer';
 import { companyFitScorer } from '../scorers/company-fit.scorer';
+import { claimGroundingScorer } from '../scorers/claim-grounding.scorer';
 
 export const researcher = new Agent({
   id: 'vertical-researcher',
@@ -217,6 +218,10 @@ follow logically from what IS in working memory and the cited sections above.
     },
     companyFit: {
       scorer: companyFitScorer,
+      sampling: { type: 'ratio', rate: 1 },
+    },
+    claimGrounding: {
+      scorer: claimGroundingScorer,
       sampling: { type: 'ratio', rate: 1 },
     },
   },
