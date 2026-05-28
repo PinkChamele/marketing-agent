@@ -21,8 +21,11 @@ export function model(role: ModelRole): () => OpenRouterModel {
   return () => getDailyModel() ?? OVERRIDES[role] ?? DEFAULT_MODELS[role];
 }
 
-export const describeModels = () => ({
-  researcher: OVERRIDES.researcher ?? DEFAULT_MODELS.researcher,
-  synthesizer: OVERRIDES.synthesizer ?? DEFAULT_MODELS.synthesizer,
-  cheap: OVERRIDES.cheap ?? DEFAULT_MODELS.cheap,
-});
+export const describeModels = () => {
+  const daily = getDailyModel();
+  return {
+    researcher: daily ?? OVERRIDES.researcher ?? DEFAULT_MODELS.researcher,
+    synthesizer: daily ?? OVERRIDES.synthesizer ?? DEFAULT_MODELS.synthesizer,
+    cheap: daily ?? OVERRIDES.cheap ?? DEFAULT_MODELS.cheap,
+  };
+};
