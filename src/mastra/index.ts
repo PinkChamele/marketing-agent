@@ -18,6 +18,7 @@ import { citationFormatScorer } from './scorers/citation-format.scorer';
 import { sourceDiversityScorer } from './scorers/source-diversity.scorer';
 import { citationIntegrityScorer } from './scorers/citation-integrity.scorer';
 import { companyFitScorer } from './scorers/company-fit.scorer';
+import { claimGroundingScorer } from './scorers/claim-grounding.scorer';
 
 searchInit();
 fetchInit();
@@ -32,6 +33,7 @@ export const mastra = new Mastra({
     sourceDiversity: sourceDiversityScorer,
     citationIntegrity: citationIntegrityScorer,
     companyFit: companyFitScorer,
+    claimGrounding: claimGroundingScorer,
   },
   storage,
   logger: new PinoLogger({
