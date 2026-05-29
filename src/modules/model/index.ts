@@ -1,14 +1,16 @@
 import { env } from '../../config/env';
 import { getDailyModel } from './daily-model';
-import type { OpenRouterModel } from './openrouter-model';
 import { ModelRole } from './model-role.enum';
+import type { MastraModelId } from './mastra-model-id';
 
 export { ModelRole } from './model-role.enum';
 export type { OpenRouterModel } from './openrouter-model';
 export { openRouterModelSchema } from './openrouter-model';
+export type { MastraModelId } from './mastra-model-id';
+export { mastraModelIdSchema, mastraModelIdPoolSchema } from './mastra-model-id';
 export { getDailyModel, refreshDailyModel, startDailyModelScheduler } from './daily-model';
 
-type RoleModelMap = Record<ModelRole, OpenRouterModel>;
+type RoleModelMap = Record<ModelRole, MastraModelId>;
 
 const DEFAULT_MODELS: RoleModelMap = {
   researcher: 'openrouter/anthropic/claude-sonnet-4.5',
@@ -16,21 +18,62 @@ const DEFAULT_MODELS: RoleModelMap = {
   cheap: 'openrouter/google/gemini-2.5-flash',
 };
 
-const OVERRIDES: Partial<RoleModelMap> = {
-  researcher: env.MODEL_RESEARCHER,
-  synthesizer: env.MODEL_SYNTHESIZER,
-  cheap: env.MODEL_CHEAP,
+const POOLS: Partial<Record<ModelRole, readonly MastraModelId[]>> = {
+  researcher: env.MODEL_RESEARCHER_POOL,
+  synthesizer: env.MODEL_SYNTHESIZER_POOL,
+  cheap: env.MODEL_CHEAP_POOL,
 };
 
-export const model = (role: ModelRole) => () =>
-  OVERRIDES[role] ?? getDailyModel() ?? DEFAULT_MODELS[role];
+/**
+ * Per-role round-robin counters. Each `model(role)()` call advances the
+ * counter for its role and returns the next pool entry, so traffic is
+ * distributed roughly equally across the configured providers.
+ *
+ * In-memory only — resets on process restart. That's fine: the goal is
+ * to spread load across providers within a single agent run, not to
+ * persist exact-ratio scheduling across deployments.
+ */
+const counters: Record<ModelRole, number> = {
+  researcher: 0,
+  synthesizer: 0,
+  cheap: 0,
+};
 
+function pickFromPool(role: ModelRole): MastraModelId | null {
+  const pool = POOLS[role];
+  if (!pool || pool.length === 0) return null;
+
+  const idx = counters[role] % pool.length;
+  counters[role] += 1;
+  return pool[idx];
+}
+
+/**
+ * Resolution order on each call:
+ *   1. Pool round-robin (MODEL_<ROLE>_POOL) — even distribution.
+ *      A single-entry pool acts as a hard override.
+ *   2. Daily-rotated model from the shir-man endpoint
+ *   3. Hardcoded default
+ */
+export const model = (role: ModelRole) => (): MastraModelId =>
+  pickFromPool(role) ?? getDailyModel() ?? DEFAULT_MODELS[role];
+
+/**
+ * Human-readable view of what's configured for each role. Pools are
+ * rendered as their full member list; daily / default show as a single id.
+ */
 export const describeModels = () => {
   const daily = getDailyModel();
+  const describe = (role: ModelRole): string => {
+    const pool = POOLS[role];
+    if (pool && pool.length > 0) return `pool: [${pool.join(', ')}]`;
+
+    return daily ?? DEFAULT_MODELS[role];
+  };
 
   return {
-    researcher: OVERRIDES.researcher ?? daily ?? DEFAULT_MODELS.researcher,
-    synthesizer: OVERRIDES.synthesizer ?? daily ?? DEFAULT_MODELS.synthesizer,
-    cheap: OVERRIDES.cheap ?? daily ?? DEFAULT_MODELS.cheap,
+    researcher: describe(ModelRole.Researcher),
+    synthesizer: describe(ModelRole.Synthesizer),
+    cheap: describe(ModelRole.Cheap),
   };
 };

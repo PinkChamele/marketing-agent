@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import process from 'node:process';
 import { SearchProviderName } from '../modules/search/enums/provider.enum';
-import { openRouterModelSchema } from '../modules/model/openrouter-model';
+import { mastraModelIdPoolSchema } from '../modules/model/mastra-model-id';
 
 const envSchema = z.object({
   SEARCH_PROVIDER: z.enum(SearchProviderName).default(SearchProviderName.Tavily),
@@ -10,9 +10,12 @@ const envSchema = z.object({
   BRAVE_API_KEY: z.string().optional(),
   OPENROUTER_API_KEY: z.string().min(1),
   FIRECRAWL_API_KEY: z.string().trim().nonempty(),
-  MODEL_RESEARCHER: openRouterModelSchema.optional(),
-  MODEL_SYNTHESIZER: openRouterModelSchema.optional(),
-  MODEL_CHEAP: openRouterModelSchema.optional(),
+  // Comma-separated pool. The router round-robins between entries so
+  // traffic is roughly even across providers. A single-entry pool acts
+  // as a hard override ("always use exactly this model").
+  MODEL_RESEARCHER_POOL: mastraModelIdPoolSchema,
+  MODEL_SYNTHESIZER_POOL: mastraModelIdPoolSchema,
+  MODEL_CHEAP_POOL: mastraModelIdPoolSchema,
   APP_URL: z.url().optional(),
 });
 
