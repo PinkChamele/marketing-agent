@@ -81,21 +81,28 @@ not just one.
 ### Source bias
 
 **Strongly prefer** (pass these in \`includeDomains\` per query, picking the subset
-relevant to the question):
+relevant to the question — primary government sources first, then analyst /
+consulting / trade press):
 
-  - Analyst firms: gartner.com, forrester.com, idc.com, everestgroup.com,
+  - **Primary government / regulatory** (the most authoritative sources for
+    US healthcare): hhs.gov, cms.gov, healthit.gov (ONC), fda.gov,
+    federalregister.gov, gao.gov, ftc.gov
+  - **SEC filings & official corporate**: sec.gov, investor.* / ir.* subdomains
+    of named incumbents (e.g. investor.cognizant.com), official company press
+    releases for named announcements
+  - **Analyst firms**: gartner.com, forrester.com, idc.com, everestgroup.com,
     hfsresearch.com
-  - Consulting publications: mckinsey.com, bcg.com, deloitte.com, bain.com,
-    accenture.com (insights only — not marketing landing pages)
-  - Trade press: healthcareitnews.com, fiercehealthcare.com,
-    beckershospitalreview.com, himss.org, modernhealthcare.com
-  - Primary sources: SEC filings (sec.gov, investor-relations subdomains of
-    named incumbents), federal/regulatory (hhs.gov, cms.gov, healthit.gov,
-    ftc.gov), official company press releases for named announcements.
+  - **Consulting publications**: deloitte.com, mckinsey.com, bcg.com, bain.com,
+    capgemini.com, accenture.com (insights / research articles only —
+    NOT /services/ or /solutions/ marketing landing pages)
+  - **Trade press**: healthcareitnews.com, fiercehealthcare.com,
+    beckershospitalreview.com, himss.org, modernhealthcare.com, statnews.com
 
-**Always exclude** (pass these in \`excludeDomains\` on every search) — these are
-SEO-driven market-report vendors whose numbers are unverifiable and often
-internally inconsistent:
+**Always exclude** (pass these in \`excludeDomains\` on every search). Two
+categories:
+
+(a) SEO-driven market-report vendors — unverifiable numbers, often internally
+inconsistent:
 
   - imarcgroup.com
   - market.us
@@ -107,9 +114,27 @@ internally inconsistent:
   - precedenceresearch.com
   - fortunebusinessinsights.com
 
-Avoid SEO content farms and vendor marketing pages unless they are the primary
-source (e.g. a company's own 10-K, earnings transcript, or product launch press
-release).
+(b) Vendor marketing pages and "best-of" listicles — these are SEO-optimized
+to rank for vertical-research queries but are either self-promotional or
+opaque listicles ("Top 10 healthcare IT outsourcing firms"). They masquerade
+as research and waste search slots:
+
+  - sumatosoft.com
+  - belitsoft.com
+  - dashtech.io
+  - softwareexpertsindia.com
+  - clutch.co (listing/review aggregator)
+  - goodfirms.co (listing/review aggregator)
+  - designrush.com (listing/review aggregator)
+  - techbehemoths.com (listing/review aggregator)
+
+**Discipline rule for results that slip through:** if a URL you receive is
+clearly a vendor's own marketing page (\`/services/\`, \`/why-choose-us/\`,
+\`/company/about/\`) or a "best companies" / "top firms" listicle, treat it as
+low-signal. Don't fetch it; don't quote from its snippet. The only exception
+is when you specifically NEED a primary source about that company (their own
+10-K, a press release announcing a named deal) — in which case prefer their
+investor-relations subdomain over their marketing site.
 
 Budget: roughly 1 search + 2 fetches per sub-topic. With 5 sub-topics that's ~15
 tool calls total. Don't keep searching when you've already found credible sources —
