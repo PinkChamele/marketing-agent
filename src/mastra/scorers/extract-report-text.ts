@@ -42,23 +42,38 @@ function extractMessageText(msg: unknown): string {
 
   if (typeof m.text === 'string') return m.text;
 
+  // Flat string content (older / simpler shape)
   if (typeof m.content === 'string') return m.content;
 
-  if (Array.isArray(m.content)) {
-    return m.content
-      .map((part) => {
-        if (typeof part === 'string') return part;
-        if (part && typeof part === 'object') {
-          const p = part as { type?: unknown; text?: unknown };
-          if ((p.type === 'text' || p.type === undefined) && typeof p.text === 'string') {
-            return p.text;
-          }
-        }
-        return '';
-      })
-      .filter(Boolean)
-      .join('');
+  // Structured content as a parts array (some Mastra paths put parts directly here)
+  if (Array.isArray(m.content)) return joinTextParts(m.content);
+
+  // Mastra UI message format v2: content is an object { format, parts: [...] }
+  // — confirmed shape from Studio's persisted assistant messages. Each part has
+  // a `type` discriminator; only `text` parts carry the user-visible response.
+  // tool-invocation / step-start parts are skipped.
+  if (m.content && typeof m.content === 'object') {
+    const c = m.content as { parts?: unknown };
+    if (Array.isArray(c.parts)) return joinTextParts(c.parts);
   }
 
   return '';
+}
+
+function joinTextParts(parts: readonly unknown[]): string {
+  return parts
+    .map((part) => {
+      if (typeof part === 'string') return part;
+      if (part && typeof part === 'object') {
+        const p = part as { type?: unknown; text?: unknown };
+        // Treat both explicit `text` parts and parts with no type as text
+        // (older Mastra versions omitted the discriminator for plain text).
+        if ((p.type === 'text' || p.type === undefined) && typeof p.text === 'string') {
+          return p.text;
+        }
+      }
+      return '';
+    })
+    .filter(Boolean)
+    .join('');
 }
