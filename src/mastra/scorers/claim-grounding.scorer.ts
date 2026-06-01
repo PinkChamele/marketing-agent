@@ -1,7 +1,8 @@
 import { z } from 'zod';
 import { createScorer } from '@mastra/core/evals';
 import { model, ModelRole } from '../../modules/model';
-import { INCOMPLETE_MSG, preprocessRun } from './extract-report-text';
+import { INCOMPLETE_MSG } from './constants';
+import { preprocessRun } from './extract-report-text';
 import { buildSkipPrompt } from './utils';
 
 export const claimGroundingScorer = createScorer({

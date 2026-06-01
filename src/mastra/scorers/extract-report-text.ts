@@ -1,3 +1,11 @@
+import {
+  EXPECTED_SECTION_PATTERNS,
+  GARBAGE_PATTERNS,
+  MIN_REPORT_LENGTH,
+  MIN_SECTION_HITS,
+  TOOL_CALL_LEAK_PATTERNS,
+} from './constants';
+
 /**
  * Mastra's agent-attached scorers receive `run.output` as the persisted
  * message-list payload — typically an array of structured message objects
@@ -70,15 +78,6 @@ function extractMessageText(msg: unknown): string {
   return '';
 }
 
-/**
- * Marker string for skipped scorer runs. Scorers prepend this to their
- * `generateReason` output so downstream dashboards can filter "didn't
- * evaluate" rows from "evaluated and scored low" rows.
- */
-export const SKIPPED_REASON_PREFIX = 'SKIPPED:';
-
-export const INCOMPLETE_MSG = `${SKIPPED_REASON_PREFIX} agent did not produce a final report.`;
-
 export interface ScorerPreprocessBase {
   /** The agent's final assistant text, extracted from the message-list payload. */
   text: string;
@@ -149,23 +148,6 @@ export function isFinalReport(text: string): boolean {
   return sectionHits >= MIN_SECTION_HITS;
 }
 
-const MIN_REPORT_LENGTH = 800;
-const MIN_SECTION_HITS = 3;
-
-const TOOL_CALL_LEAK_PATTERNS = [
-  /<\|tool_call/i,
-  /<\|im_start\|>/i,
-  /<tool_call>/i,
-  /<function\s*=/i,
-];
-
-const GARBAGE_PATTERNS = [
-  ...TOOL_CALL_LEAK_PATTERNS,
-  /\[object Object\]/,
-  /"inputMessages"\s*:/,
-  /"systemMessages"\s*:/,
-];
-
 // Strip code fences so a legit `<tool_call>` inside a code example doesn't
 // trigger a false retry — only leaked tool-call markup in the model's own
 // prose should count.
@@ -177,17 +159,6 @@ export function hasLeakedToolCall(text: string): boolean {
   if (!text) return false;
   return TOOL_CALL_LEAK_PATTERNS.some((p) => p.test(stripFencedCode(text)));
 }
-
-const EXPECTED_SECTION_PATTERNS = [
-  /^#{1,6}\s*\d?[.)\s]*executive\s+summary/im,
-  /^#{1,6}\s*\d?[.)\s]*market\s+trends/im,
-  /^#{1,6}\s*\d?[.)\s]*competitor/im,
-  /^#{1,6}\s*\d?[.)\s]*(candidate\s+)?icps?/im,
-  /^#{1,6}\s*\d?[.)\s]*fit\s+analysis/im,
-  /^#{1,6}\s*\d?[.)\s]*positioning/im,
-  /^#{1,6}\s*\d?[.)\s]*confidence/im,
-  /^#{1,6}\s*\d?[.)\s]*sources?\s*$/im,
-];
 
 function joinTextParts(parts: readonly unknown[]): string {
   return parts
