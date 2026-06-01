@@ -152,13 +152,31 @@ export function isFinalReport(text: string): boolean {
 const MIN_REPORT_LENGTH = 800;
 const MIN_SECTION_HITS = 3;
 
-const GARBAGE_PATTERNS = [
+const TOOL_CALL_LEAK_PATTERNS = [
   /<\|tool_call/i,
   /<\|im_start\|>/i,
+  /<tool_call>/i,
+  /<function\s*=/i,
+];
+
+const GARBAGE_PATTERNS = [
+  ...TOOL_CALL_LEAK_PATTERNS,
   /\[object Object\]/,
   /"inputMessages"\s*:/,
   /"systemMessages"\s*:/,
 ];
+
+// Strip code fences so a legit `<tool_call>` inside a code example doesn't
+// trigger a false retry — only leaked tool-call markup in the model's own
+// prose should count.
+function stripFencedCode(text: string): string {
+  return text.replace(/```[\s\S]*?```/g, '').replace(/~~~[\s\S]*?~~~/g, '');
+}
+
+export function hasLeakedToolCall(text: string): boolean {
+  if (!text) return false;
+  return TOOL_CALL_LEAK_PATTERNS.some((p) => p.test(stripFencedCode(text)));
+}
 
 const EXPECTED_SECTION_PATTERNS = [
   /^#{1,6}\s*\d?[.)\s]*executive\s+summary/im,
