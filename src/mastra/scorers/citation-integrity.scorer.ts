@@ -1,7 +1,6 @@
 import { createScorer } from '@mastra/core/evals';
 import { INCOMPLETE_MSG } from './constants';
-import { preprocessRun } from './extract-report-text';
-import { extractUrls } from './utils';
+import { extractUrls, preprocessRun } from './utils';
 
 function splitBodyAndSources(report: string): { body: string; sources: string } {
   const match = report.match(/^#{1,6}\s*sources?\s*$/im);

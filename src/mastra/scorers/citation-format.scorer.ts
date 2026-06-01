@@ -1,6 +1,6 @@
 import { createScorer } from '@mastra/core/evals';
 import { INCOMPLETE_MSG } from './constants';
-import { preprocessRun } from './extract-report-text';
+import { preprocessRun } from './utils';
 
 export const citationFormatScorer = createScorer({
   id: 'citation-format',

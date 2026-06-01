@@ -4,7 +4,7 @@ import {
   MIN_REPORT_LENGTH,
   MIN_SECTION_HITS,
   TOOL_CALL_LEAK_PATTERNS,
-} from './constants';
+} from '../constants';
 
 /**
  * Mastra's agent-attached scorers receive `run.output` as the persisted

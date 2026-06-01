@@ -3,8 +3,7 @@ import { createScorer } from '@mastra/core/evals';
 import { model } from '../../modules/model';
 import { ModelRole } from '../../modules/model';
 import { INCOMPLETE_MSG } from './constants';
-import { preprocessRun } from './extract-report-text';
-import { buildSkipPrompt } from './utils';
+import { buildSkipPrompt, preprocessRun } from './utils';
 
 export const companyFitScorer = createScorer({
   id: 'company-fit',

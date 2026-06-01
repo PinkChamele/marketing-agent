@@ -3,7 +3,7 @@ import type {
   ProcessOutputStepArgs,
   ProcessorMessageResult,
 } from '@mastra/core/processors';
-import { hasLeakedToolCall } from '../scorers/extract-report-text';
+import { hasLeakedToolCall } from '../scorers/utils';
 import { logger } from '../../utils/logger';
 
 const ID = 'tool-call-leak-recovery';

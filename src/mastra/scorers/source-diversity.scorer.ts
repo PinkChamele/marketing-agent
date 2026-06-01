@@ -1,7 +1,6 @@
 import { createScorer } from '@mastra/core/evals';
 import { INCOMPLETE_MSG } from './constants';
-import { preprocessRun } from './extract-report-text';
-import { extractDomains } from './utils';
+import { extractDomains, preprocessRun } from './utils';
 
 export const sourceDiversityScorer = createScorer({
   id: 'source-diversity',
