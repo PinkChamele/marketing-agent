@@ -15,6 +15,7 @@ function splitBodyAndSources(report: string): { body: string; sources: string } 
 
 export const citationIntegrityScorer = createScorer({
   id: 'citation-integrity',
+  type: 'agent',
   description:
     'Checks that every URL cited inline also appears in the Sources section, and reports orphan/unused sources',
 })

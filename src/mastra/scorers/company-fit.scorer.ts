@@ -7,6 +7,7 @@ import { buildSkipPrompt, preprocessRun } from './utils';
 
 export const companyFitScorer = createScorer({
   id: 'company-fit',
+  type: 'agent',
   description:
     'Checks whether the report tailors analysis to the specific company in the brief, vs. generic output',
   judge: {

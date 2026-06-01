@@ -6,6 +6,7 @@ import { buildSkipPrompt, preprocessRun } from './utils';
 
 export const claimGroundingScorer = createScorer({
   id: 'claim-grounding',
+  type: 'agent',
   description: 'Fraction of checkable factual claims in the report that carry a citation',
   judge: {
     model: model(ModelRole.Cheap)(),

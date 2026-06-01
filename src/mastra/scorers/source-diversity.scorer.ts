@@ -4,6 +4,7 @@ import { extractDomains, preprocessRun } from './utils';
 
 export const sourceDiversityScorer = createScorer({
   id: 'source-diversity',
+  type: 'agent',
   description: 'Rewards reports that triangulate across multiple independent sources',
 })
   .preprocess(({ run }) => {

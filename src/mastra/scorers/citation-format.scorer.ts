@@ -4,6 +4,7 @@ import { preprocessRun } from './utils';
 
 export const citationFormatScorer = createScorer({
   id: 'citation-format',
+  type: 'agent',
   description: 'Penalizes raw JSON or malformed citations leaking into the report',
 })
   .preprocess(({ run }) => preprocessRun(run))
