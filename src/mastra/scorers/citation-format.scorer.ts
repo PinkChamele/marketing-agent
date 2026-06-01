@@ -1,19 +1,25 @@
 import { createScorer } from '@mastra/core/evals';
-import { extractReportText } from './extract-report-text';
+import { INCOMPLETE_MSG, preprocessRun } from './extract-report-text';
 
 export const citationFormatScorer = createScorer({
   id: 'citation-format',
   description: 'Penalizes raw JSON or malformed citations leaking into the report',
 })
-  .generateScore(({ run }) => {
-    const output = extractReportText(run.output);
-    const jsonCitationLeak = /【?\{?["']?source["']?\s*:/.test(output);
-    const rawBracketObjects = /【.*\{.*\}.*】/.test(output);
+  .preprocess(({ run }) => preprocessRun(run))
+  .generateScore(({ results }) => {
+    const { text, isComplete } = results.preprocessStepResult;
+    if (!isComplete) return 0;
+
+    const jsonCitationLeak = /【?\{?["']?source["']?\s*:/.test(text);
+    const rawBracketObjects = /【.*\{.*\}.*】/.test(text);
 
     return +!(jsonCitationLeak || rawBracketObjects);
   })
-  .generateReason(({ score }) =>
-    score
+  .generateReason(({ score, results }) => {
+    if (!results.preprocessStepResult.isComplete) {
+      return INCOMPLETE_MSG;
+    }
+    return score
       ? 'Citations are clean.'
-      : 'Report contains raw JSON/serialized citations instead of clean references.',
-  );
+      : 'Report contains raw JSON/serialized citations instead of clean references.';
+  });

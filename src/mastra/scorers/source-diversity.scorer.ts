@@ -1,5 +1,5 @@
 import { createScorer } from '@mastra/core/evals';
-import { extractReportText } from './extract-report-text';
+import { INCOMPLETE_MSG, preprocessRun } from './extract-report-text';
 
 function extractDomains(text: string): string[] {
   const urls = text.match(/https?:\/\/[^\s)\]】"']+/g) ?? [];
@@ -20,17 +20,27 @@ export const sourceDiversityScorer = createScorer({
   id: 'source-diversity',
   description: 'Rewards reports that triangulate across multiple independent sources',
 })
-  .preprocess(({ run }) => extractDomains(extractReportText(run.output)))
+  .preprocess(({ run }) => {
+    const base = preprocessRun(run);
+    return {
+      isComplete: base.isComplete,
+      domains: base.isComplete ? extractDomains(base.text) : [],
+    };
+  })
   .generateScore(({ results }) => {
-    const domains = results.preprocessStepResult;
+    const { isComplete, domains } = results.preprocessStepResult;
 
+    if (!isComplete) return 0;
     if (domains.length === 0) return 0;
     if (domains.length <= 2) return 0.4;
     if (domains.length <= 4) return 0.7;
+
     return 1;
   })
   .generateReason(({ score, results }) => {
-    const domains = results.preprocessStepResult;
+    const { isComplete, domains } = results.preprocessStepResult;
 
-    return `Report cites ${domains.length} distinct source domain(s). Score: ${score}.`;
+    return isComplete
+      ? `Report cites ${domains.length} distinct source domain(s). Score: ${score}.`
+      : INCOMPLETE_MSG;
   });

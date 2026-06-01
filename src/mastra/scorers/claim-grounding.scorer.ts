@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { createScorer } from '@mastra/core/evals';
 import { model, ModelRole } from '../../modules/model';
-import { extractReportText } from './extract-report-text';
+import { INCOMPLETE_MSG, preprocessRun } from './extract-report-text';
 
 export const claimGroundingScorer = createScorer({
   id: 'claim-grounding',
@@ -12,6 +12,7 @@ export const claimGroundingScorer = createScorer({
       'You are a strict fact-checking editor reviewing a market research report for proper attribution.',
   },
 })
+  .preprocess(({ run }) => preprocessRun(run))
   .analyze({
     description: 'Identify factual claims and whether each is cited',
     outputSchema: z.object({
@@ -23,8 +24,16 @@ export const claimGroundingScorer = createScorer({
         }),
       ),
     }),
-    createPrompt: ({ run }) =>
-      `
+    createPrompt: ({ results }) => {
+      const { text, isComplete } = results.preprocessStepResult;
+
+      if (!isComplete) {
+        // Minimal short-circuit prompt — Mastra always runs analyze when
+        // it's defined. ~30 tokens instead of ~3000.
+        return 'Respond with exactly this JSON and nothing else:\n{"claims":[]}';
+      }
+
+      return `
 Below is a market-entry research report. Extract its individual CHECKABLE
 factual claims — statements that assert a fact about the world that could be
 verified against a source (market sizes, growth rates, percentages, named
@@ -41,11 +50,14 @@ Do not invent claims. Only extract what is actually present.
 
 Report:
 """
-${extractReportText(run.output)}
+${text}
 """
-    `.trim(),
+      `.trim();
+    },
   })
   .generateScore(({ results }) => {
+    if (!results.preprocessStepResult.isComplete) return 0;
+
     const claims = results.analyzeStepResult.claims.filter((c) => c.isFactual);
 
     if (!claims.length) return 1;
@@ -55,6 +67,10 @@ ${extractReportText(run.output)}
     return cited / claims.length;
   })
   .generateReason(({ results, score }) => {
+    if (!results.preprocessStepResult.isComplete) {
+      return INCOMPLETE_MSG;
+    }
+
     const factual = results.analyzeStepResult.claims.filter((c) => c.isFactual);
     const uncited = factual.filter((c) => !c.isCited);
 

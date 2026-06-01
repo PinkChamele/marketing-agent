@@ -1,5 +1,5 @@
 import { createScorer } from '@mastra/core/evals';
-import { extractReportText } from './extract-report-text';
+import { INCOMPLETE_MSG, preprocessRun } from './extract-report-text';
 
 function extractUrls(text: string): string[] {
   const matches = text.match(/https?:\/\/[^\s)\]】"'<>]+/g) ?? [];
@@ -24,8 +24,20 @@ export const citationIntegrityScorer = createScorer({
     'Checks that every URL cited inline also appears in the Sources section, and reports orphan/unused sources',
 })
   .preprocess(({ run }) => {
-    const report = extractReportText(run.output);
-    const { body, sources } = splitBodyAndSources(report);
+    const base = preprocessRun(run);
+
+    if (!base.isComplete) {
+      return {
+        isComplete: false,
+        inlineCount: 0,
+        sourceCount: 0,
+        orphanCitations: [],
+        unusedSources: [],
+        hasSourcesSection: false,
+      };
+    }
+
+    const { body, sources } = splitBodyAndSources(base.text);
 
     const inlineUrls = new Set(extractUrls(body));
     const sourceUrls = new Set(extractUrls(sources));
@@ -34,6 +46,7 @@ export const citationIntegrityScorer = createScorer({
     const unusedSources = [...sourceUrls].filter((u) => !inlineUrls.has(u));
 
     return {
+      isComplete: true,
       inlineCount: inlineUrls.size,
       sourceCount: sourceUrls.size,
       orphanCitations,
@@ -44,6 +57,7 @@ export const citationIntegrityScorer = createScorer({
   .generateScore(({ results }) => {
     const p = results.preprocessStepResult;
 
+    if (!p.isComplete) return 0;
     if (!p.hasSourcesSection || p.inlineCount === 0) return 0;
 
     const orphanPenalty = Math.min(1, p.orphanCitations.length * 0.34);
@@ -54,6 +68,9 @@ export const citationIntegrityScorer = createScorer({
   .generateReason(({ results, score }) => {
     const p = results.preprocessStepResult;
 
+    if (!p.isComplete) {
+      return INCOMPLETE_MSG;
+    }
     if (!p.hasSourcesSection) return 'No Sources section found in the report.';
     if (p.inlineCount === 0) return 'Report makes claims but cites no sources inline.';
 
