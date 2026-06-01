@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { createScorer } from '@mastra/core/evals';
 import { model, ModelRole } from '../../modules/model';
 import { INCOMPLETE_MSG, preprocessRun } from './extract-report-text';
+import { buildSkipPrompt } from './utils';
 
 export const claimGroundingScorer = createScorer({
   id: 'claim-grounding',
@@ -28,9 +29,7 @@ export const claimGroundingScorer = createScorer({
       const { text, isComplete } = results.preprocessStepResult;
 
       if (!isComplete) {
-        // Minimal short-circuit prompt — Mastra always runs analyze when
-        // it's defined. ~30 tokens instead of ~3000.
-        return 'Respond with exactly this JSON and nothing else:\n{"claims":[]}';
+        return buildSkipPrompt({ claims: [] });
       }
 
       return `
