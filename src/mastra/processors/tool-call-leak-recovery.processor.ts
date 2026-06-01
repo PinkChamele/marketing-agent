@@ -5,6 +5,8 @@ import type {
 } from '@mastra/core/processors';
 import { hasLeakedToolCall } from '../scorers/extract-report-text';
 
+const ID = 'tool-call-leak-recovery';
+
 /**
  * Detects when a model emits a tool call as text content (Gemma-style
  * `<|tool_call|>`, Llama-style `<tool_call>...</tool_call>`, `<function=...>`
@@ -15,11 +17,11 @@ import { hasLeakedToolCall } from '../scorers/extract-report-text';
  * Capped at `maxRetries` per generation — after that, the leak is allowed
  * through so the scorer-level `isFinalReport` gate records it as a failure.
  */
-export class ToolCallLeakRecoveryProcessor implements Processor<'tool-call-leak-recovery'> {
-  readonly id = 'tool-call-leak-recovery';
+export class ToolCallLeakRecoveryProcessor implements Processor<typeof ID> {
+  readonly id = ID;
   readonly name = 'Tool Call Leak Recovery';
 
-  constructor(private readonly maxRetries = 1) {}
+  constructor(private readonly maxRetries = 2) {}
 
   processOutputStep({
     text,
@@ -30,7 +32,7 @@ export class ToolCallLeakRecoveryProcessor implements Processor<'tool-call-leak-
     if (!text || !hasLeakedToolCall(text)) return messages;
     if (retryCount >= this.maxRetries) return messages;
 
-    abort(
+    return abort(
       'Your previous response contained text that looked like a function call ' +
         '(e.g. <tool_call>...</tool_call> or <function=...>) but was not an ' +
         'actual tool invocation — the runtime did not see a real function call. ' +
