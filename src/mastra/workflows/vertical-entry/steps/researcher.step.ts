@@ -1,8 +1,9 @@
-import { z } from 'zod';
-import { randomUUID } from 'node:crypto';
-import { createStep, createWorkflow } from '@mastra/core/workflows';
+import z from "zod";
+import { randomUUID } from "crypto";
+import { createStep } from "@mastra/core/workflows";
+import { researcher } from "../../../agents/researcher";
 
-const briefSchema = z.object({
+export const briefSchema = z.object({
   vertical: z
     .string()
     .min(2)
@@ -13,7 +14,7 @@ const briefSchema = z.object({
     .describe('Brief description of the outsourcing company entering the vertical'),
 });
 
-const reportSchema = z.object({
+export const reportSchema = z.object({
   threadId: z
     .string()
     .describe(
@@ -22,7 +23,7 @@ const reportSchema = z.object({
   report: z.string().describe('The final markdown report'),
 });
 
-const runResearcher = createStep({
+export const runResearcher = createStep({
   id: 'run-researcher',
   description:
     'Invokes the researcher agent to investigate the vertical and produce a strategy report',
@@ -33,11 +34,7 @@ const runResearcher = createStep({
       throw new Error('Brief not provided');
     }
 
-    const agent = mastra?.getAgent('researcher');
-    if (!agent) {
-      throw new Error('Researcher agent not registered');
-    }
-
+    const agent = mastra.getAgentById(researcher.id);
     const threadId = randomUUID();
 
     const prompt = `
@@ -64,13 +61,3 @@ Produce a vertical-entry research report following your two-phase process.
     return { threadId, report };
   },
 });
-
-const verticalEntryWorkflow = createWorkflow({
-  id: 'vertical-entry-workflow',
-  inputSchema: briefSchema,
-  outputSchema: reportSchema,
-}).then(runResearcher);
-
-verticalEntryWorkflow.commit();
-
-export { verticalEntryWorkflow };
