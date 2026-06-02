@@ -60,7 +60,14 @@ export function preprocessRun(run: {
   }
 
   const text = extractReportText(run.output);
-  const brief = extractReportText(run.input?.inputMessages);
+  // Concat all user-role messages across remembered + current turn so the
+  // brief survives interrupt-and-resume runs (where `inputMessages` is just
+  // the resumption text like "continue" and the real brief sits in memory).
+  const briefMessages = [
+    ...(run.input?.rememberedMessages ?? []),
+    ...(run.input?.inputMessages ?? []),
+  ].filter((m) => m.role === 'user');
+  const brief = extractReportText(briefMessages);
   const isComplete = isFinalReport(text);
   const result: ScorerPreprocessBase = { text, brief, isComplete };
 
