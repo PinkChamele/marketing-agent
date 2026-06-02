@@ -1,9 +1,12 @@
 import { createScorer } from '@mastra/core/evals';
 import { INCOMPLETE_MSG } from './constants';
-import { extractUrls, preprocessRun } from './utils';
+import { preprocessRun } from './utils';
+
+const SOURCES_HEADING = /^#{1,6}\s*\d?[.)\s]*sources?\s*$/im;
+const REF_MARKER = /\[\d+\]/g;
 
 function splitBodyAndSources(report: string): { body: string; sources: string } {
-  const match = report.match(/^#{1,6}\s*sources?\s*$/im);
+  const match = report.match(SOURCES_HEADING);
 
   return !match || match.index === undefined
     ? { body: report, sources: '' }
@@ -11,6 +14,10 @@ function splitBodyAndSources(report: string): { body: string; sources: string } 
         body: report.slice(0, match.index),
         sources: report.slice(match.index),
       };
+}
+
+function extractRefs(text: string): Set<string> {
+  return new Set(text.match(REF_MARKER) ?? []);
 }
 
 export const citationIntegrityScorer = createScorer({
@@ -35,16 +42,16 @@ export const citationIntegrityScorer = createScorer({
 
     const { body, sources } = splitBodyAndSources(base.text);
 
-    const inlineUrls = new Set(extractUrls(body));
-    const sourceUrls = new Set(extractUrls(sources));
+    const inlineRefs = extractRefs(body);
+    const sourceRefs = extractRefs(sources);
 
-    const orphanCitations = [...inlineUrls].filter((u) => !sourceUrls.has(u));
-    const unusedSources = [...sourceUrls].filter((u) => !inlineUrls.has(u));
+    const orphanCitations = [...inlineRefs].filter((r) => !sourceRefs.has(r));
+    const unusedSources = [...sourceRefs].filter((r) => !inlineRefs.has(r));
 
     return {
       isComplete: true,
-      inlineCount: inlineUrls.size,
-      sourceCount: sourceUrls.size,
+      inlineCount: inlineRefs.size,
+      sourceCount: sourceRefs.size,
       orphanCitations,
       unusedSources,
       hasSourcesSection: sources.length > 0,
@@ -66,7 +73,7 @@ export const citationIntegrityScorer = createScorer({
 
     if (!p.isComplete) return INCOMPLETE_MSG;
     if (!p.hasSourcesSection) return 'No Sources section found in the report.';
-    if (p.inlineCount === 0) return 'Report makes claims but cites no sources inline.';
+    if (p.inlineCount === 0) return 'Report has Sources entries but no [N] citations in the body.';
 
     const parts: string[] = [`Score ${score.toFixed(2)}.`];
 
