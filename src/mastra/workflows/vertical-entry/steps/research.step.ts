@@ -4,22 +4,28 @@ import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { createStep } from '@mastra/core/workflows';
 import { researcher } from '../../../agents/researcher';
+import { getProfile } from '../../../../modules/companies';
+import { env } from '../../../../config/env';
 
 export const briefSchema = z.object({
   vertical: z
     .string()
     .min(2)
     .describe("The industry vertical to research, e.g. 'healthcare IT outsourcing'"),
-  companyDescription: z
+  companyKey: z
     .string()
-    .min(10)
-    .describe('Brief description of the outsourcing company entering the vertical'),
+    .min(1)
+    .optional()
+    .describe(
+      'Key identifying which company profile from src/modules/companies/ to use. Falls back to DEFAULT_COMPANY_KEY env var when omitted.',
+    ),
 });
 
 export const researchOutputSchema = z.object({
   threadId: z.string(),
   vertical: z.string(),
-  companyDescription: z.string(),
+  companyName: z.string(),
+  companyFacts: z.string(),
   completionSignal: z.string(),
 });
 
@@ -32,13 +38,26 @@ export const runResearch = createStep({
   execute: async ({ inputData, mastra }) => {
     if (!inputData) throw new Error('Brief not provided');
 
+    const companyKey = inputData.companyKey ?? env.DEFAULT_COMPANY_KEY;
+    if (!companyKey) {
+      throw new Error(
+        'No companyKey in workflow input and DEFAULT_COMPANY_KEY env var is not set',
+      );
+    }
+    const profile = getProfile(companyKey);
+    if (!profile) {
+      throw new Error(`Unknown companyKey: "${companyKey}"`);
+    }
+
     const agent = mastra.getAgentById(researcher.id);
     const threadId = randomUUID();
     const resourceId = 'default';
 
     const prompt = `
 Vertical: ${inputData.vertical}
-Company description: ${inputData.companyDescription}
+Company: ${profile.name}
+Profile (verified ${profile.lastVerified}):
+${profile.facts}
 
 Populate working memory with structured findings, then emit your completion signal.
     `.trim();
@@ -57,7 +76,8 @@ Populate working memory with structured findings, then emit your completion sign
     return {
       threadId,
       vertical: inputData.vertical,
-      companyDescription: inputData.companyDescription,
+      companyName: profile.name,
+      companyFacts: profile.facts,
       completionSignal,
     };
   },

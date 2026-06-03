@@ -23,7 +23,9 @@ export const runSynthesis = createStep({
 The researcher has populated working memory with findings about:
 
 Vertical: ${inputData.vertical}
-Company description: ${inputData.companyDescription}
+Company: ${inputData.companyName}
+Profile:
+${inputData.companyFacts}
 
 Read the working-memory document now and produce the final markdown report.
     `.trim();
