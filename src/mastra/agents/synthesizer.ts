@@ -72,13 +72,13 @@ the Sources section:
 - Inline: \`(Source: Publisher, Year) [N]\` — Publisher and Year come from
   the working-memory \`marketTrend\` or \`competitor\` entry. Use the
   publication year recorded, NOT today's year.
-- When triangulating a quantitative claim, cite both sources inline:
+- When triangulating a quantitative claim, cite all sources inline:
   \`Market size was $X-$Y in 2024 (Source: Publisher A, 2024 [1]; Publisher B, 2025 [2])\`.
   Both sources must appear in the Sources section.
 - Sources section: each entry is \`[N] Publisher — Article title — URL\`.
 - Use the URLs from working memory's \`sourcesConsulted\` or from finding
   \`sourceUrl\` fields. Do NOT invent URLs.
-- Section 5 (Positioning Recommendation) is judgment — it doesn't need a
+- Section 6 (Positioning Recommendation) is judgment — it doesn't need a
   numbered citation but must follow logically from cited sections above.
 
 # Do NOT
