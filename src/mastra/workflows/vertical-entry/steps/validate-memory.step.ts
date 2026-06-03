@@ -14,7 +14,7 @@ const MIN_TRENDS = 3;
 const MIN_COMPETITORS = 3;
 const MIN_ICPS = 2;
 const MIN_SOURCES = 5;
-const QUANT_CLAIM_REGEX = /\$|\d+(?:\.\d+)?\s*%|\b(19|20)\d{2}\b/;
+const QUANT_CLAIM_REGEX = /\$|\d+(?:\.\d+)?\s*%/;
 
 export const validateMemory = createStep({
   id: 'validate-memory',
