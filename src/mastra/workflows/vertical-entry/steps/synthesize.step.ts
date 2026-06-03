@@ -29,7 +29,11 @@ Read the working-memory document now and produce the final markdown report.
     `.trim();
 
     const response = await agent.stream([{ role: 'user', content: prompt }], {
-      memory: { thread: inputData.threadId, resource: 'default' },
+      memory: {
+        thread: inputData.threadId,
+        resource: 'default',
+        options: { readOnly: true },
+      },
       maxSteps: 1,
     });
 
