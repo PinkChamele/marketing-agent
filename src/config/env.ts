@@ -17,6 +17,7 @@ const envSchema = z.object({
   MODEL_SYNTHESIZER_POOL: mastraModelIdPoolSchema,
   MODEL_CHEAP_POOL: mastraModelIdPoolSchema,
   APP_URL: z.url().optional(),
+  DEFAULT_COMPANY_KEY: z.string().min(1).optional(),
 });
 
 export const env = envSchema.parse(process.env);

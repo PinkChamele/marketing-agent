@@ -8,6 +8,7 @@ import {
 import { logger } from '../utils/logger';
 import { init as searchInit } from '../modules/search';
 import { init as fetchInit } from '../modules/fetch';
+import { init as companiesInit } from '../modules/companies';
 import { researcher } from './agents/researcher';
 import { synthesizer } from './agents/synthesizer';
 import { webSearchTool } from './tools/web-search.tool';
@@ -22,6 +23,7 @@ import { claimGroundingScorer } from './scorers/claim-grounding.scorer';
 
 searchInit();
 fetchInit();
+companiesInit();
 
 export const mastra = new Mastra({
   workflows: { verticalEntryWorkflow },
