@@ -1,6 +1,5 @@
 // src/mastra/workflows/vertical-entry/steps/validate-memory.step.ts
 
-import { z } from 'zod';
 import { createStep } from '@mastra/core/workflows';
 import { researchMemory } from '../../../memory';
 import {
@@ -9,9 +8,7 @@ import {
 } from '../../../schemas/research-memory';
 import { researchOutputSchema } from './research.step';
 
-export const validateOutputSchema = researchOutputSchema.extend({
-  memory: z.unknown(),
-});
+export const validateOutputSchema = researchOutputSchema;
 
 const MIN_TRENDS = 3;
 const MIN_COMPETITORS = 3;
@@ -37,7 +34,6 @@ export const validateMemory = createStep({
       );
     }
 
-    // Working memory in schema mode is stored as JSON-stringified content.
     let parsedJson: unknown;
     try {
       parsedJson = JSON.parse(raw);
@@ -54,15 +50,14 @@ export const validateMemory = createStep({
       );
     }
 
-    const m = parsed.data;
-    const deficits = collectDeficits(m);
+    const deficits = collectDeficits(parsed.data);
     if (deficits.length) {
       throw new Error(
         'Research insufficient for synthesis:\n  - ' + deficits.join('\n  - '),
       );
     }
 
-    return { ...inputData, memory: m };
+    return inputData;
   },
 });
 
@@ -90,9 +85,8 @@ function collectDeficits(m: ResearchMemory): string[] {
     );
   }
 
-  // Triangulation: every quantitative trend needs corroboration from another
-  // trend citing the same claim from a different sourceUrl OR from the
-  // sourcesConsulted log sharing the publisher.
+  // Triangulation: every quantitative trend needs corroboration from
+  // another trend citing a different sourceUrl AND a different publisher.
   for (const trend of m.marketTrends) {
     const looksQuantitative =
       QUANT_CLAIM_REGEX.test(trend.claim) || QUANT_CLAIM_REGEX.test(trend.evidence);
@@ -102,8 +96,9 @@ function collectDeficits(m: ResearchMemory): string[] {
       (other) =>
         other !== trend &&
         other.sourceUrl !== trend.sourceUrl &&
-        (other.publisher === trend.publisher ||
-          QUANT_CLAIM_REGEX.test(other.claim)),
+        other.publisher !== trend.publisher &&
+        (QUANT_CLAIM_REGEX.test(other.claim) ||
+          QUANT_CLAIM_REGEX.test(other.evidence)),
     );
     if (!corroborated) {
       deficits.push(
