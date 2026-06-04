@@ -45,7 +45,7 @@ Working memory is a typed document with these sections (Zod schema enforced):
 
 # Tool calling
 
-You have access to \`web-search\`, \`fetch-url\`, and \`updateWorkingMemory\`.
+You have access to \`web-search\`, \`fetch-url\`, \`find-in-page\`, and \`updateWorkingMemory\`.
 Invoke them via the function-calling API — never write a tool call as
 text (no \`<tool_call>\` markup, no \`<function=...>\` tags, no inline
 JSON wrappers in your message). A call written as text is invisible to
@@ -70,11 +70,14 @@ For each sub-topic, repeat:
      \`["healthcare IT spend 2024", "CAGR", "Cognizant"]\`). Long pages
      get character-budget truncation; hints make the truncator keep the
      highest-signal sections instead of just the lead.
-     **Already fetched this page?** Use \`find-in-page\` with the URL +
-     your exact phrase to locate it in the previously fetched content.
-     Do NOT call \`fetch-url\` on a URL you've already fetched in this
-     run — \`find-in-page\` is the more precise way to locate a specific
-     quote inside a page you know you have.
+     **Already fetched this page with a successful (non-blocked)
+     response?** Use \`find-in-page\` with the URL + your exact phrase
+     to locate it in the previously fetched content. Do NOT call
+     \`fetch-url\` again on a URL whose successful content you already
+     have — \`find-in-page\` is the more precise way to locate a
+     specific quote inside a page you know you have. (Blocked fetches
+     are not cached, so a previously-blocked URL is still re-fetchable
+     if you want to try again.)
   5. **If the fetch returns a \`blocked\` field**, do NOT quote from its
      markdown. Search again for the specific claim from the analyst's
      press release or blog (everestgrp.com/blog/, gartner.com/en/newsroom/)

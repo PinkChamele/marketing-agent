@@ -7,6 +7,10 @@ import { researcher } from '../../../agents/researcher';
 import { getProfile } from '../../../../modules/companies';
 import { env } from '../../../../config/env';
 import { getCache } from '../../../../modules/page-cache';
+import { logger } from '../../../../utils/logger';
+import { getErrMsg } from '../../../../utils/errors';
+
+const log = logger.child({ module: 'research-step' });
 
 export const briefSchema = z.object({
   vertical: z
@@ -85,7 +89,13 @@ Populate working memory with structured findings, then emit your completion sign
         completionSignal,
       };
     } finally {
-      await getCache().clear(runId);
+      try {
+        await getCache().clear(runId);
+      } catch (err) {
+        log.warn(
+          `Failed to clear page cache for run ${runId}: ${getErrMsg(err)} — entries will expire via TTL`,
+        );
+      }
     }
   },
 });
