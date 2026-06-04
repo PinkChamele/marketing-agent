@@ -70,10 +70,10 @@ export const findInPageTool = createTool({
     const matches: { snippet: string; matchOffset: number }[] = [];
     const lowerMarkdown = entry.markdown.toLowerCase();
     const lowerQuery = query.toLowerCase();
-    const half = Math.floor(contextChars / 2);
+    const half = Math.floor((contextChars ?? 300) / 2);
 
     let cursor = 0;
-    while (matches.length < maxMatches) {
+    while (matches.length < (maxMatches ?? 5)) {
       const idx = lowerMarkdown.indexOf(lowerQuery, cursor);
       if (idx === -1) break;
       const from = Math.max(0, idx - half);
