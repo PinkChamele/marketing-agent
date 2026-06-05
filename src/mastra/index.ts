@@ -15,6 +15,7 @@ import { synthesizer } from './agents/synthesizer';
 import { webSearchTool } from './tools/web-search.tool';
 import { fetchTool } from './tools/fetch.tool';
 import { findInPageTool } from './tools/find-in-page.tool';
+import { readWorkingMemoryTool } from './tools/read-working-memory.tool';
 import { storage } from './storage';
 import { verticalEntryWorkflow } from './workflows/vertical-entry';
 import { citationFormatScorer } from './scorers/citation-format.scorer';
@@ -31,7 +32,7 @@ await pageCacheInit();
 export const mastra = new Mastra({
   workflows: { verticalEntryWorkflow },
   agents: { researcher, synthesizer },
-  tools: { webSearchTool, fetchTool, findInPageTool },
+  tools: { webSearchTool, fetchTool, findInPageTool, readWorkingMemoryTool },
   scorers: {
     citationFormat: citationFormatScorer,
     sourceDiversity: sourceDiversityScorer,

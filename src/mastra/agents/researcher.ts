@@ -7,6 +7,7 @@ import { researchMemory } from '../memory';
 import { webSearchTool } from '../tools/web-search.tool';
 import { fetchTool } from '../tools/fetch.tool';
 import { findInPageTool } from '../tools/find-in-page.tool';
+import { readWorkingMemoryTool } from '../tools/read-working-memory.tool';
 import { ToolCallLeakRecoveryProcessor } from '../processors/tool-call-leak-recovery.processor';
 
 export const researcher = new Agent({
@@ -38,11 +39,17 @@ Working memory is a typed document with these sections (Zod schema enforced):
 
 # Tool calling
 
-You have access to \`web-search\`, \`fetch-url\`, \`find-in-page\`, and \`updateWorkingMemory\`.
+You have access to \`web-search\`, \`fetch-url\`, \`find-in-page\`,
+\`read-working-memory\`, and \`updateWorkingMemory\`.
 Invoke them via the function-calling API — never write a tool call as
 text (no \`<tool_call>\` markup, no \`<function=...>\` tags, no inline
 JSON wrappers in your message). A call written as text is invisible to
 the runtime and the work does not happen.
+
+Use \`read-working-memory\` whenever you need to verify the current state
+of your findings — for example, before deciding whether to record a new
+finding (to avoid duplicates) and before emitting your completion signal
+(to get accurate counts). Do not guess what you have already written.
 
 # Research loop
 
@@ -128,7 +135,9 @@ it and move on.
 
 # When you're done
 
-After your last working-memory write, emit a single short message in
+After your last working-memory write, call \`read-working-memory\` once
+to read the current counts straight from the document — do not estimate
+them from what you remember writing. Then emit a single short message in
 exactly this shape:
 
 \`Recorded N trends, M competitors, K ICPs, S sources, Q open questions.\`
@@ -138,7 +147,7 @@ NOT write a report — the workflow reads memory directly and another agent
 writes the report.
   `.trim(),
   model: model(ModelRole.Researcher),
-  tools: { webSearchTool, fetchTool, findInPageTool },
+  tools: { webSearchTool, fetchTool, findInPageTool, readWorkingMemoryTool },
   memory: researchMemory,
   outputProcessors: [new ToolCallLeakRecoveryProcessor()],
   defaultOptions: {
