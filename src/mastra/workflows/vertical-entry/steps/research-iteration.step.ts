@@ -38,13 +38,13 @@ export const runResearchIteration = createStep({
 
     const { completionSignal } = await invokeResearcher({
       mastra,
-      threadId: inputData.threadId,
-      resourceId: inputData.resourceId,
+      threadId: runId,
+      resourceId: 'default',
       runId,
       prompt,
     });
 
-    const newMemory = await readMemory(inputData.threadId, inputData.resourceId);
+    const newMemory = await readMemory(runId, 'default');
 
     return {
       ...inputData,

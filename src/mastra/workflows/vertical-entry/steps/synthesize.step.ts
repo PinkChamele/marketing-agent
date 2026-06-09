@@ -16,7 +16,7 @@ export const runSynthesis = createStep({
     'Invokes the synthesizer agent on the same thread to read working memory and write the final report',
   inputSchema: iterationStateSchema,
   outputSchema: reportSchema,
-  execute: async ({ inputData, mastra }) => {
+  execute: async ({ inputData, mastra, runId }) => {
     const agent = mastra.getAgentById(synthesizer.id);
 
     const prompt = `
@@ -32,8 +32,8 @@ Read the working-memory document now and produce the final markdown report.
 
     const response = await agent.stream([{ role: 'user', content: prompt }], {
       memory: {
-        thread: inputData.threadId,
-        resource: inputData.resourceId,
+        thread: runId,
+        resource: 'default',
         options: { readOnly: true },
       },
       maxSteps: 1,
@@ -45,6 +45,6 @@ Read the working-memory document now and produce the final markdown report.
       report += chunk;
     }
 
-    return { threadId: inputData.threadId, report };
+    return { threadId: runId, report };
   },
 });

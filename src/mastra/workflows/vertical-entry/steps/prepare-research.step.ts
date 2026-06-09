@@ -1,6 +1,5 @@
 // src/mastra/workflows/vertical-entry/steps/prepare-research.step.ts
 
-import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { createStep } from '@mastra/core/workflows';
 import { getProfile } from '../../../../modules/companies';
@@ -31,8 +30,6 @@ export const briefSchema = z.object({
  * downstream tracing.
  */
 export const iterationStateSchema = z.object({
-  threadId: z.string(),
-  resourceId: z.string(),
   vertical: z.string(),
   companyName: z.string(),
   companyFacts: z.string(),
@@ -51,10 +48,10 @@ export const iterationStateSchema = z.object({
 export const prepareResearch = createStep({
   id: 'prepare-research',
   description:
-    'Resolves the company profile from the brief, mints a fresh threadId, and seeds the iteration state with empty deficits and zero memory counts. The dountil loop runs after this step.',
+    'Resolves the company profile from the brief and seeds the iteration state with empty deficits and zero memory counts. The agent thread for this run is the workflow runId; no separate thread is minted. The dountil loop runs after this step.',
   inputSchema: briefSchema,
   outputSchema: iterationStateSchema,
-  execute: ({ inputData }) => {
+  execute: ({ inputData, runId }) => {
     if (!inputData) throw new Error('Brief not provided');
 
     const companyKey = inputData.companyKey ?? env.DEFAULT_COMPANY_KEY;
@@ -69,8 +66,6 @@ export const prepareResearch = createStep({
     }
 
     return Promise.resolve({
-      threadId: randomUUID(),
-      resourceId: 'default',
       vertical: inputData.vertical,
       companyName: profile.name,
       companyFacts: profile.facts,
