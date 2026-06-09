@@ -5,12 +5,7 @@ import { z } from 'zod';
 import { createStep } from '@mastra/core/workflows';
 import { getProfile } from '../../../../modules/companies';
 import { env } from '../../../../config/env';
-import { getCache } from '../../../../modules/page-cache';
-import { logger } from '../../../../utils/logger';
-import { getErrMsg } from '../../../../utils/errors';
 import { invokeResearcher } from './invoke-researcher';
-
-const log = logger.child({ module: 'research-step' });
 
 export const briefSchema = z.object({
   vertical: z
@@ -68,34 +63,22 @@ ${profile.facts}
 Populate working memory with structured findings, then emit your completion signal.
     `.trim();
 
-    // NOTE: cache clear moves to refine-or-pass.step in Task 2 once the
-    // retry loop lands. For now it stays here to preserve existing behavior.
-    try {
-      const { completionSignal } = await invokeResearcher({
-        mastra,
-        threadId,
-        resourceId,
-        runId,
-        prompt,
-      });
+    const { completionSignal } = await invokeResearcher({
+      mastra,
+      threadId,
+      resourceId,
+      runId,
+      prompt,
+    });
 
-      return {
-        threadId,
-        resourceId,
-        vertical: inputData.vertical,
-        companyName: profile.name,
-        companyFacts: profile.facts,
-        completionSignal,
-        attempt: 1,
-      };
-    } finally {
-      try {
-        await getCache().clear(runId);
-      } catch (err) {
-        log.warn(
-          `Failed to clear page cache for run ${runId}: ${getErrMsg(err)} — entries will expire via TTL`,
-        );
-      }
-    }
+    return {
+      threadId,
+      resourceId,
+      vertical: inputData.vertical,
+      companyName: profile.name,
+      companyFacts: profile.facts,
+      completionSignal,
+      attempt: 1,
+    };
   },
 });

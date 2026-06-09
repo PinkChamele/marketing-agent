@@ -2,7 +2,7 @@
 
 import { createWorkflow } from '@mastra/core/workflows';
 import { briefSchema, runResearch } from './steps/research.step';
-import { validateMemory } from './steps/validate-memory.step';
+import { refineOrPass } from './steps/refine-or-pass.step';
 import { reportSchema, runSynthesis } from './steps/synthesize.step';
 
 const verticalEntryWorkflow = createWorkflow({
@@ -11,7 +11,7 @@ const verticalEntryWorkflow = createWorkflow({
   outputSchema: reportSchema,
 })
   .then(runResearch)
-  .then(validateMemory)
+  .dountil(refineOrPass, ({ inputData }) => Promise.resolve(inputData.passed))
   .then(runSynthesis);
 
 verticalEntryWorkflow.commit();

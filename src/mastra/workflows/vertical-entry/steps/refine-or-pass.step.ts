@@ -1,5 +1,6 @@
-// src/mastra/workflows/vertical-entry/steps/validate-memory.step.ts
+// src/mastra/workflows/vertical-entry/steps/refine-or-pass.step.ts
 
+import { z } from 'zod';
 import { createStep } from '@mastra/core/workflows';
 import { researchMemory } from '../../../memory';
 import {
@@ -7,28 +8,38 @@ import {
   type ResearchMemory,
 } from '../../../schemas/research-memory';
 import { researchOutputSchema } from './research.step';
+import { invokeResearcher } from './invoke-researcher';
+import { getCache } from '../../../../modules/page-cache';
+import { logger } from '../../../../utils/logger';
+import { getErrMsg } from '../../../../utils/errors';
 
-export const validateOutputSchema = researchOutputSchema;
+const log = logger.child({ module: 'refine-or-pass' });
 
-const MIN_TRENDS = 2;
+export const refineOutputSchema = researchOutputSchema.extend({
+  passed: z.boolean(),
+});
+
+const MIN_TRENDS = 3;
 const MIN_COMPETITORS = 3;
 const MIN_ICPS = 2;
 const MIN_SOURCES = 5;
 const QUANT_CLAIM_REGEX = /\$|\d+(?:\.\d+)?\s*%/;
+const MAX_ATTEMPTS = 3;
 
-export const validateMemory = createStep({
-  id: 'validate-memory',
+export const refineOrPass = createStep({
+  id: 'refine-or-pass',
   description:
-    'Reads working memory, parses against the schema, and fails fast if minimum thresholds for a synthesizable report are not met',
+    'Reads working memory; if thresholds are met returns passed:true. Otherwise invokes the researcher again with corrective feedback naming the specific deficits. Throws when MAX_ATTEMPTS is reached.',
   inputSchema: researchOutputSchema,
-  outputSchema: validateOutputSchema,
-  execute: async ({ inputData }) => {
+  outputSchema: refineOutputSchema,
+  execute: async ({ inputData, mastra, runId }) => {
     const raw = await researchMemory.getWorkingMemory({
       threadId: inputData.threadId,
-      resourceId: 'default',
+      resourceId: inputData.resourceId,
     });
 
     if (!raw) {
+      await clearCache(runId);
       throw new Error(
         'Researcher produced no working memory. The synthesizer has no input — halting.',
       );
@@ -38,6 +49,7 @@ export const validateMemory = createStep({
     try {
       parsedJson = JSON.parse(raw);
     } catch {
+      await clearCache(runId);
       throw new Error(
         `Working memory is not valid JSON. Length: ${raw.length}. Head: ${raw.slice(0, 200)}`,
       );
@@ -45,21 +57,63 @@ export const validateMemory = createStep({
 
     const parsed = researchMemorySchema.safeParse(parsedJson);
     if (!parsed.success) {
+      await clearCache(runId);
       throw new Error(
         'Working memory does not match the expected schema: ' + parsed.error.message,
       );
     }
 
     const deficits = collectDeficits(parsed.data);
-    if (deficits.length) {
+
+    if (deficits.length === 0) {
+      await clearCache(runId);
+      return { ...inputData, passed: true };
+    }
+
+    if (inputData.attempt >= MAX_ATTEMPTS) {
+      await clearCache(runId);
       throw new Error(
-        'Research insufficient for synthesis:\n  - ' + deficits.join('\n  - '),
+        `Research insufficient after ${inputData.attempt} attempts:\n  - ` +
+          deficits.join('\n  - '),
       );
     }
 
-    return inputData;
+    const correctivePrompt = `
+The validate gate found these gaps in your research:
+
+${deficits.map((d) => `  - ${d}`).join('\n')}
+
+Use your tools to address each gap. Your existing findings are still in
+working memory — only fill in what's missing. When done, emit your
+completion signal again with the updated counts.
+    `.trim();
+
+    const { completionSignal } = await invokeResearcher({
+      mastra,
+      threadId: inputData.threadId,
+      resourceId: inputData.resourceId,
+      runId,
+      prompt: correctivePrompt,
+    });
+
+    return {
+      ...inputData,
+      completionSignal,
+      attempt: inputData.attempt + 1,
+      passed: false,
+    };
   },
 });
+
+async function clearCache(runId: string): Promise<void> {
+  try {
+    await getCache().clear(runId);
+  } catch (err) {
+    log.warn(
+      `Failed to clear page cache for run ${runId}: ${getErrMsg(err)} — entries will expire via TTL`,
+    );
+  }
+}
 
 function collectDeficits(m: ResearchMemory): string[] {
   const deficits: string[] = [];
@@ -97,8 +151,7 @@ function collectDeficits(m: ResearchMemory): string[] {
         other !== trend &&
         other.sourceUrl !== trend.sourceUrl &&
         other.publisher !== trend.publisher &&
-        (QUANT_CLAIM_REGEX.test(other.claim) ||
-          QUANT_CLAIM_REGEX.test(other.evidence)),
+        (QUANT_CLAIM_REGEX.test(other.claim) || QUANT_CLAIM_REGEX.test(other.evidence)),
     );
     if (!corroborated) {
       deficits.push(

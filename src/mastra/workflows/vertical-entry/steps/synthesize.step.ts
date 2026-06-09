@@ -3,7 +3,7 @@
 import { z } from 'zod';
 import { createStep } from '@mastra/core/workflows';
 import { synthesizer } from '../../../agents/synthesizer';
-import { validateOutputSchema } from './validate-memory.step';
+import { refineOutputSchema } from './refine-or-pass.step';
 
 export const reportSchema = z.object({
   threadId: z.string(),
@@ -14,7 +14,7 @@ export const runSynthesis = createStep({
   id: 'run-synthesis',
   description:
     'Invokes the synthesizer agent on the same thread to read working memory and write the final report',
-  inputSchema: validateOutputSchema,
+  inputSchema: refineOutputSchema,
   outputSchema: reportSchema,
   execute: async ({ inputData, mastra }) => {
     const agent = mastra.getAgentById(synthesizer.id);
