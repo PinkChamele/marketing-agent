@@ -71,10 +71,11 @@ For each sub-topic, repeat:
      relevant. For very large pages, you don't have to read every section —
      pick the ones that match your sub-topic. If a section is
      \`truncated: true\`, the full text is still searchable via \`find-in-page\`.
-     If the page comes back as one giant section (no headings or a single
-     heading covering everything), there's no structure to scan — fall
-     through to \`find-in-page\` on this URL to locate specific phrases without
+
+     **Page came back as one giant section?** No structure to scan —
+     fall through to \`find-in-page\` to locate specific phrases without
      reading the whole blob into context.
+
      **Already fetched this page with a successful (non-blocked)
      response?** Use \`find-in-page\` with the URL + your exact phrase
      to locate it in the previously fetched content. Do NOT call
@@ -84,7 +85,7 @@ For each sub-topic, repeat:
      are not cached, so a previously-blocked URL is still re-fetchable
      if you want to try again.)
   5. **If the fetch returns a \`blocked\` field**, do NOT quote from its
-     markdown. Search again for the specific claim from the analyst's
+     sections. Search again for the specific claim from the analyst's
      press release or blog (everestgrp.com/blog/, gartner.com/en/newsroom/)
      or reputable secondary coverage. If still blocked, record the gap in
      \`openQuestions\` rather than dropping it silently.

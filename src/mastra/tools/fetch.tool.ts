@@ -6,7 +6,7 @@ import { extractSections } from '../../modules/extract-sections';
 
 const descriptions = {
   tool:
-    'Fetch a single web page and return its main content as a list of sections (heading + content). Use this after `web-search` when you need the full text of a result rather than just the snippet, or when an agent already has a known URL (e.g. a competitor homepage, a 10-K, an analyst report). Providers are tried in order — cheap HTTP+readability first, then Firecrawl for JS-heavy pages — so calls are best-effort and may return empty/short content for paywalls, bot walls, or dynamic apps. Scan section headings first; read the content of sections you care about. For very large pages, sections give you a structured view without loading the whole document. To search for a specific phrase inside a page you have already fetched, use `find-in-page` instead of re-fetching.',
+    'Fetch a single web page and return its main content as a list of sections (heading + content). Use this after `web-search` when you need the full text of a result rather than just the snippet, or when an agent already has a known URL (e.g. a competitor homepage, a 10-K, an analyst report). Providers are tried in order — cheap HTTP+readability first, then Firecrawl for JS-heavy pages — so calls are best-effort and may return empty/short content for paywalls, bot walls, or dynamic apps. Scan section headings first; read the content of sections you care about. For very large pages, sections give you a structured view without loading the whole document. To search for a specific phrase inside a page you have already fetched (or to navigate a freshly-fetched page that came back as one unstructured blob), use `find-in-page` instead of re-fetching.',
   input: {
     url: 'Absolute URL of the page to fetch. Must be a fully qualified http(s) URL.',
     requiresJs:
@@ -66,12 +66,13 @@ export const fetchTool = createTool({
     }
     const result = await fetchUrl({ url, runId: runIdValue, requiresJs });
     const sections = result.blocked ? [] : extractSections(result.markdown);
+    const pageChars = result.blocked ? 0 : result.markdown.length;
     return {
       url: result.url,
       finalUrl: result.finalUrl,
       title: result.title,
       sections,
-      pageChars: result.markdown.length,
+      pageChars,
       source: result.source,
       fetchedAt: result.fetchedAt,
       blocked: result.blocked,
