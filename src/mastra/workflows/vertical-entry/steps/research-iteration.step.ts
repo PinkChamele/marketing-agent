@@ -25,7 +25,7 @@ export const runResearchIteration = createStep({
   outputSchema: iterationStateSchema,
   execute: async ({ inputData, mastra, runId }) => {
     try {
-      const memory = await readMemory(inputData.threadId, inputData.resourceId);
+      const memory = await readMemory(inputData.threadId, inputData.resourceId, inputData.attempt);
       const deficits = collectDeficits(memory);
 
       // Early exit: nothing missing AND we've already done at least one iteration.
@@ -52,7 +52,7 @@ export const runResearchIteration = createStep({
         prompt,
       });
 
-      const newMemory = await readMemory(inputData.threadId, inputData.resourceId);
+      const newMemory = await readMemory(inputData.threadId, inputData.resourceId, inputData.attempt + 1);
       const newDeficits = collectDeficits(newMemory);
       const passed = newDeficits.length === 0;
 
@@ -73,11 +73,16 @@ export const runResearchIteration = createStep({
   },
 });
 
-async function readMemory(threadId: string, resourceId: string): Promise<ResearchMemory> {
+async function readMemory(threadId: string, resourceId: string, attempt: number): Promise<ResearchMemory> {
   const raw = await researchMemory.getWorkingMemory({ threadId, resourceId });
 
   if (!raw) {
-    // First iteration on a fresh thread — no memory yet. Treat as empty.
+    if (attempt > 0) {
+      throw new Error(
+        'Researcher invoked but produced no working memory. The persistence layer may be failing — halting.',
+      );
+    }
+    // attempt === 0: fresh thread, no writes yet. Empty is expected.
     return {
       marketTrends: [],
       competitors: [],
