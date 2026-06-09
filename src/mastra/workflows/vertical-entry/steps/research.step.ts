@@ -3,13 +3,12 @@
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { createStep } from '@mastra/core/workflows';
-import { RequestContext } from '@mastra/core/request-context';
-import { researcher } from '../../../agents/researcher';
 import { getProfile } from '../../../../modules/companies';
 import { env } from '../../../../config/env';
 import { getCache } from '../../../../modules/page-cache';
 import { logger } from '../../../../utils/logger';
 import { getErrMsg } from '../../../../utils/errors';
+import { invokeResearcher } from './invoke-researcher';
 
 const log = logger.child({ module: 'research-step' });
 
@@ -29,16 +28,18 @@ export const briefSchema = z.object({
 
 export const researchOutputSchema = z.object({
   threadId: z.string(),
+  resourceId: z.string(),
   vertical: z.string(),
   companyName: z.string(),
   companyFacts: z.string(),
   completionSignal: z.string(),
+  attempt: z.number().int().positive(),
 });
 
 export const runResearch = createStep({
   id: 'run-research',
   description:
-    'Invokes the researcher agent on a fresh thread to populate working memory with structured findings',
+    'Invokes the researcher agent on a fresh thread to populate working memory with structured findings (first pass)',
   inputSchema: briefSchema,
   outputSchema: researchOutputSchema,
   execute: async ({ inputData, mastra, runId }) => {
@@ -55,11 +56,8 @@ export const runResearch = createStep({
       throw new Error(`Unknown companyKey: "${companyKey}"`);
     }
 
-    const agent = mastra.getAgentById(researcher.id);
     const threadId = randomUUID();
     const resourceId = 'default';
-
-    const requestContext = new RequestContext<{ runId: string }>([['runId', runId]]);
 
     const prompt = `
 Vertical: ${inputData.vertical}
@@ -70,25 +68,25 @@ ${profile.facts}
 Populate working memory with structured findings, then emit your completion signal.
     `.trim();
 
+    // NOTE: cache clear moves to refine-or-pass.step in Task 2 once the
+    // retry loop lands. For now it stays here to preserve existing behavior.
     try {
-      const response = await agent.stream([{ role: 'user', content: prompt }], {
-        memory: { thread: threadId, resource: resourceId },
-        maxSteps: 60,
-        requestContext,
+      const { completionSignal } = await invokeResearcher({
+        mastra,
+        threadId,
+        resourceId,
+        runId,
+        prompt,
       });
-
-      let completionSignal = '';
-      for await (const chunk of response.textStream) {
-        process.stdout.write(chunk);
-        completionSignal += chunk;
-      }
 
       return {
         threadId,
+        resourceId,
         vertical: inputData.vertical,
         companyName: profile.name,
         companyFacts: profile.facts,
         completionSignal,
+        attempt: 1,
       };
     } finally {
       try {
