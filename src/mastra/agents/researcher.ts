@@ -64,12 +64,17 @@ For each sub-topic, repeat:
   3. **Mine the snippet first.** If the search snippet already contains
      the specific figure or quote you need, cite it directly and skip the
      fetch.
-  4. **Otherwise, fetch.** Call \`fetch-url\` to get the full page.
-     **Pass \`extractHints\` with 2-4 short keywords or phrases for what
-     you're hunting on that page** (e.g.
-     \`["healthcare IT spend 2024", "CAGR", "Cognizant"]\`). Long pages
-     get character-budget truncation; hints make the truncator keep the
-     highest-signal sections instead of just the lead.
+  4. **Otherwise, fetch.** Call \`fetch-url\` to get the page content. The tool
+     returns a \`sections\` array (each with \`heading\`, \`level\`, \`content\`,
+     \`contentChars\`, \`truncated\`) plus a \`pageChars\` field for the total page
+     size. Scan headings first; read the \`content\` of sections that look
+     relevant. For very large pages, you don't have to read every section —
+     pick the ones that match your sub-topic. If a section is
+     \`truncated: true\`, the full text is still searchable via \`find-in-page\`.
+     If the page comes back as one giant section (no headings or a single
+     heading covering everything), there's no structure to scan — fall
+     through to \`find-in-page\` on this URL to locate specific phrases without
+     reading the whole blob into context.
      **Already fetched this page with a successful (non-blocked)
      response?** Use \`find-in-page\` with the URL + your exact phrase
      to locate it in the previously fetched content. Do NOT call
