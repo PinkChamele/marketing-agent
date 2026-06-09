@@ -15,76 +15,51 @@ const MIN_COMPETITORS = 3;
 const MIN_ICPS = 2;
 const MIN_SOURCES = 5;
 const QUANT_CLAIM_REGEX = /\$|\d+(?:\.\d+)?\s*%/;
-const MAX_ATTEMPTS = 3;
 
-const EMPTY_MEMORY: ResearchMemory = {
-  marketTrends: [],
-  competitors: [],
-  candidateIcps: [],
-  sourcesConsulted: [],
-  openQuestions: [],
-};
+interface MemoryCounts {
+  trends: number;
+  competitors: number;
+  icps: number;
+  sources: number;
+  openQuestions: number;
+}
 
 export const runResearchIteration = createStep({
   id: 'research-iteration',
   description:
-    'One iteration of the research loop. Reads working memory, computes deficits, builds a prompt that restates the brief + accumulated progress + remaining deficits, invokes the researcher on the same thread, and returns updated state with `passed` set to true when thresholds are met.',
+    'One iteration of the research loop. Builds a prompt that restates the brief plus the current progress counts and remaining deficits, invokes the researcher on the same thread, reads working memory once after the invocation, and outputs the new deficits + counts. Loop exit, max-attempts enforcement, and success-path cache cleanup live in the dountil callback.',
   inputSchema: iterationStateSchema,
   outputSchema: iterationStateSchema,
   execute: async ({ inputData, mastra, runId }) => {
+    const prompt = buildIterationPrompt(
+      inputData,
+      inputData.deficits,
+      inputData.memoryCounts,
+    );
+
+    let completionSignal: string;
     try {
-      let memory: ResearchMemory = EMPTY_MEMORY;
-      let deficits: string[] = [];
-
-      // Iteration 1 (attempt=0) skips the pre-invoke read — the thread is
-      // fresh, memory is definitively empty, no point in a round-trip.
-      if (inputData.attempt > 0) {
-        memory = await readMemory(inputData.threadId, inputData.resourceId);
-        deficits = collectDeficits(memory);
-
-        // Early exit: previous iteration's invocation filled all gaps
-        if (deficits.length === 0) {
-          await clearCache(runId);
-          return { ...inputData, passed: true };
-        }
-      }
-
-      if (inputData.attempt >= MAX_ATTEMPTS) {
-        throw new Error(
-          `Research insufficient after ${inputData.attempt} attempts:\n  - ` +
-            deficits.join('\n  - '),
-        );
-      }
-
-      const prompt = buildIterationPrompt(inputData, memory, deficits);
-
-      const { completionSignal } = await invokeResearcher({
+      const result = await invokeResearcher({
         mastra,
         threadId: inputData.threadId,
         resourceId: inputData.resourceId,
         runId,
         prompt,
       });
-
-      // Re-read AFTER invocation — null here is always a real persistence failure.
-      const newMemory = await readMemory(inputData.threadId, inputData.resourceId);
-      const newDeficits = collectDeficits(newMemory);
-      const passed = newDeficits.length === 0;
-
-      if (passed) {
-        await clearCache(runId);
-      }
-
-      return {
-        ...inputData,
-        completionSignal,
-        attempt: inputData.attempt + 1,
-        passed,
-      };
+      completionSignal = result.completionSignal;
     } catch (err) {
       await clearCache(runId);
       throw err;
     }
+
+    const newMemory = await readMemory(inputData.threadId, inputData.resourceId);
+
+    return {
+      ...inputData,
+      completionSignal,
+      deficits: collectDeficits(newMemory),
+      memoryCounts: countsFromMemory(newMemory),
+    };
   },
 });
 
@@ -114,6 +89,16 @@ async function readMemory(threadId: string, resourceId: string): Promise<Researc
   }
 
   return parsed.data;
+}
+
+function countsFromMemory(m: ResearchMemory): MemoryCounts {
+  return {
+    trends: m.marketTrends.length,
+    competitors: m.competitors.length,
+    icps: m.candidateIcps.length,
+    sources: m.sourcesConsulted.length,
+    openQuestions: m.openQuestions.length,
+  };
 }
 
 function collectDeficits(m: ResearchMemory): string[] {
@@ -171,25 +156,21 @@ function buildIterationPrompt(
     companyFacts: string;
     companyVerified: string;
   },
-  memory: ResearchMemory,
   deficits: string[],
+  counts: MemoryCounts,
 ): string {
   const hasFindings =
-    memory.marketTrends.length +
-      memory.competitors.length +
-      memory.candidateIcps.length +
-      memory.sourcesConsulted.length >
-    0;
+    counts.trends + counts.competitors + counts.icps + counts.sources > 0;
 
   const progressBlock = hasFindings
     ? `
 
 Your current progress in working memory:
-  - marketTrends: ${memory.marketTrends.length}
-  - competitors: ${memory.competitors.length}
-  - candidateIcps: ${memory.candidateIcps.length}
-  - sourcesConsulted: ${memory.sourcesConsulted.length}
-  - openQuestions: ${memory.openQuestions.length}`
+  - marketTrends: ${counts.trends}
+  - competitors: ${counts.competitors}
+  - candidateIcps: ${counts.icps}
+  - sourcesConsulted: ${counts.sources}
+  - openQuestions: ${counts.openQuestions}`
     : '';
 
   const deficitsBlock = deficits.length
