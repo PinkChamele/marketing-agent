@@ -51,7 +51,7 @@ export const prepareResearch = createStep({
     'Resolves the company profile from the brief and seeds the iteration state with empty deficits and zero memory counts. The agent thread for this run is the workflow runId; no separate thread is minted. The dountil loop runs after this step.',
   inputSchema: briefSchema,
   outputSchema: iterationStateSchema,
-  execute: ({ inputData, runId }) => {
+  execute: ({ inputData }) => {
     if (!inputData) throw new Error('Brief not provided');
 
     const companyKey = inputData.companyKey ?? env.DEFAULT_COMPANY_KEY;
