@@ -79,7 +79,7 @@ export const refineOrPass = createStep({
     }
 
     const correctivePrompt = `
-The validate gate found these gaps in your research:
+The quality check found these gaps in your research:
 
 ${deficits.map((d) => `  - ${d}`).join('\n')}
 
@@ -88,13 +88,19 @@ working memory — only fill in what's missing. When done, emit your
 completion signal again with the updated counts.
     `.trim();
 
-    const { completionSignal } = await invokeResearcher({
-      mastra,
-      threadId: inputData.threadId,
-      resourceId: inputData.resourceId,
-      runId,
-      prompt: correctivePrompt,
-    });
+    let completionSignal: string;
+    try {
+      ({ completionSignal } = await invokeResearcher({
+        mastra,
+        threadId: inputData.threadId,
+        resourceId: inputData.resourceId,
+        runId,
+        prompt: correctivePrompt,
+      }));
+    } catch (err) {
+      await clearCache(runId);
+      throw err;
+    }
 
     return {
       ...inputData,

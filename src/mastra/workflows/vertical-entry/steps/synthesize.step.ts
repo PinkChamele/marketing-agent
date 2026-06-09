@@ -33,7 +33,7 @@ Read the working-memory document now and produce the final markdown report.
     const response = await agent.stream([{ role: 'user', content: prompt }], {
       memory: {
         thread: inputData.threadId,
-        resource: 'default',
+        resource: inputData.resourceId,
         options: { readOnly: true },
       },
       maxSteps: 1,
