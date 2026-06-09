@@ -23,9 +23,12 @@ export const briefSchema = z.object({
 /**
  * State shape that flows through the research-iteration loop.
  * dountil requires the step's input and output schemas to match, so this
- * type is reused for both. `passed` is the loop's exit signal; `attempt`
- * is the iteration counter; `completionSignal` carries the latest agent
- * completion message for downstream tracing.
+ * type is reused for both. `deficits` is the list of unmet thresholds
+ * after the most recent invocation — empty means the loop should exit.
+ * `memoryCounts` is a snapshot of the working-memory counts after the
+ * most recent invocation, used by the next iteration's progress block.
+ * `completionSignal` carries the latest agent completion message for
+ * downstream tracing.
  */
 export const iterationStateSchema = z.object({
   threadId: z.string(),
@@ -34,15 +37,21 @@ export const iterationStateSchema = z.object({
   companyName: z.string(),
   companyFacts: z.string(),
   companyVerified: z.string(),
-  attempt: z.number().int().nonnegative(),
   completionSignal: z.string(),
-  passed: z.boolean(),
+  deficits: z.array(z.string()),
+  memoryCounts: z.object({
+    trends: z.number().int().nonnegative(),
+    competitors: z.number().int().nonnegative(),
+    icps: z.number().int().nonnegative(),
+    sources: z.number().int().nonnegative(),
+    openQuestions: z.number().int().nonnegative(),
+  }),
 });
 
 export const prepareResearch = createStep({
   id: 'prepare-research',
   description:
-    'Resolves the company profile from the brief, mints a fresh threadId, and seeds the iteration state with attempt:0 / passed:false. The dountil loop runs after this step.',
+    'Resolves the company profile from the brief, mints a fresh threadId, and seeds the iteration state with empty deficits and zero memory counts. The dountil loop runs after this step.',
   inputSchema: briefSchema,
   outputSchema: iterationStateSchema,
   execute: ({ inputData }) => {
@@ -66,9 +75,15 @@ export const prepareResearch = createStep({
       companyName: profile.name,
       companyFacts: profile.facts,
       companyVerified: profile.lastVerified,
-      attempt: 0,
       completionSignal: '',
-      passed: false,
+      deficits: [],
+      memoryCounts: {
+        trends: 0,
+        competitors: 0,
+        icps: 0,
+        sources: 0,
+        openQuestions: 0,
+      },
     });
   },
 });
