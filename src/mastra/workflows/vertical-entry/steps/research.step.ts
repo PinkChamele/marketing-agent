@@ -6,6 +6,7 @@ import { createStep } from '@mastra/core/workflows';
 import { getProfile } from '../../../../modules/companies';
 import { env } from '../../../../config/env';
 import { invokeResearcher } from './invoke-researcher';
+import { clearCache } from './cache-cleanup';
 
 export const briefSchema = z.object({
   vertical: z
@@ -63,13 +64,19 @@ ${profile.facts}
 Populate working memory with structured findings, then emit your completion signal.
     `.trim();
 
-    const { completionSignal } = await invokeResearcher({
-      mastra,
-      threadId,
-      resourceId,
-      runId,
-      prompt,
-    });
+    let completionSignal: string;
+    try {
+      ({ completionSignal } = await invokeResearcher({
+        mastra,
+        threadId,
+        resourceId,
+        runId,
+        prompt,
+      }));
+    } catch (err) {
+      await clearCache(runId);
+      throw err;
+    }
 
     return {
       threadId,

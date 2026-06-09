@@ -9,11 +9,7 @@ import {
 } from '../../../schemas/research-memory';
 import { researchOutputSchema } from './research.step';
 import { invokeResearcher } from './invoke-researcher';
-import { getCache } from '../../../../modules/page-cache';
-import { logger } from '../../../../utils/logger';
-import { getErrMsg } from '../../../../utils/errors';
-
-const log = logger.child({ module: 'refine-or-pass' });
+import { clearCache } from './cache-cleanup';
 
 export const refineOutputSchema = researchOutputSchema.extend({
   passed: z.boolean(),
@@ -85,7 +81,9 @@ ${deficits.map((d) => `  - ${d}`).join('\n')}
 
 Use your tools to address each gap. Your existing findings are still in
 working memory — only fill in what's missing. When done, emit your
-completion signal again with the updated counts.
+completion signal again in exactly this shape:
+\`Recorded N trends, M competitors, K ICPs, S sources, Q open questions.\`
+with the updated counts.
     `.trim();
 
     let completionSignal: string;
@@ -110,16 +108,6 @@ completion signal again with the updated counts.
     };
   },
 });
-
-async function clearCache(runId: string): Promise<void> {
-  try {
-    await getCache().clear(runId);
-  } catch (err) {
-    log.warn(
-      `Failed to clear page cache for run ${runId}: ${getErrMsg(err)} — entries will expire via TTL`,
-    );
-  }
-}
 
 function collectDeficits(m: ResearchMemory): string[] {
   const deficits: string[] = [];
