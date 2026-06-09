@@ -303,7 +303,7 @@ In `src/mastra/agents/researcher.ts`:
 
 Replace with:
 
-> **Otherwise, fetch.** Call `fetch-url` to get the page content. The tool returns a `sections` array (each with `heading`, `level`, `content`, `contentChars`, `truncated`) plus a `pageChars` field for the total page size. Scan headings first; read the `content` of sections that look relevant. For very large pages, you don't have to read every section — pick the ones that match your sub-topic. If a section is `truncated: true`, the full text is still searchable via `find-in-page`.
+> **Otherwise, fetch.** Call `fetch-url` to get the page content. The tool returns a `sections` array (each with `heading`, `level`, `content`, `contentChars`, `truncated`) plus a `pageChars` field for the total page size. Scan headings first; read the `content` of sections that look relevant. For very large pages, you don't have to read every section — pick the ones that match your sub-topic. If a section is `truncated: true`, the full text is still searchable via `find-in-page`. If the page comes back as one giant section (no headings or a single heading covering everything), there's no structure to scan — fall through to `find-in-page` on this URL to locate specific phrases without reading the whole blob into context.
 
 **Change B**: the "Already fetched this page with a successful (non-blocked) response?" sub-bullet stays as-is (still relevant).
 
