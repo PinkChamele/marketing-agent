@@ -1,8 +1,7 @@
 import { createScorer } from '@mastra/core/evals';
-import { INCOMPLETE_MSG } from './constants';
+import { INCOMPLETE_MSG, SOURCES_HEADING } from './constants';
 import { preprocessRun } from './utils';
 
-const SOURCES_HEADING = /^#{1,6}\s*\d?[.)\s]*sources?\s*$/im;
 const REF_MARKER = /\[\d+\]/g;
 
 function splitBodyAndSources(report: string): { body: string; sources: string } {

@@ -30,17 +30,36 @@ export const GARBAGE_PATTERNS = [
   /"systemMessages"\s*:/,
 ];
 
+// Heading prefix tolerant of both ATX (`##`) and bold-wrapped (`**…**`)
+// styles, with optional numbering (`1.`, `2)`). The synthesizer's
+// instructions present sections in bold, so the actual reports use
+// `**Executive Summary**` — not `## Executive Summary`. Matching only ATX
+// caused every scorer to short-circuit with "didn't produce a final report".
+const HEADING_PREFIX = String.raw`^\s*(?:#{1,6}\s*)?(?:\*\*|__)?\s*\d?[.)\s]*`;
+const BOLD_CLOSE = String.raw`(?:\*\*|__)?\s*`;
+
+/**
+ * Sources-section heading. Anchored to end-of-line so prose mentions of
+ * "sources" don't trip the match. Used by `isFinalReport` (via
+ * `EXPECTED_SECTION_PATTERNS`) and by `citation-integrity`'s body/sources
+ * splitter, so the two scorers share a single definition.
+ */
+export const SOURCES_HEADING = new RegExp(
+  HEADING_PREFIX + String.raw`sources?` + BOLD_CLOSE + String.raw`$`,
+  'im',
+);
+
 /**
  * Expected section headers in the synthesizer's final report. A report must
  * hit at least `MIN_SECTION_HITS` of these to pass the `isFinalReport` gate.
  */
 export const EXPECTED_SECTION_PATTERNS = [
-  /^#{1,6}\s*\d?[.)\s]*executive\s+summary/im,
-  /^#{1,6}\s*\d?[.)\s]*market\s+trends/im,
-  /^#{1,6}\s*\d?[.)\s]*competitor/im,
-  /^#{1,6}\s*\d?[.)\s]*(candidate\s+)?icps?/im,
-  /^#{1,6}\s*\d?[.)\s]*fit\s+analysis/im,
-  /^#{1,6}\s*\d?[.)\s]*positioning/im,
-  /^#{1,6}\s*\d?[.)\s]*confidence/im,
-  /^#{1,6}\s*\d?[.)\s]*sources?\s*$/im,
+  new RegExp(HEADING_PREFIX + String.raw`executive\s+summary`, 'im'),
+  new RegExp(HEADING_PREFIX + String.raw`market\s+trends`, 'im'),
+  new RegExp(HEADING_PREFIX + String.raw`competitor`, 'im'),
+  new RegExp(HEADING_PREFIX + String.raw`(?:candidate\s+)?icps?`, 'im'),
+  new RegExp(HEADING_PREFIX + String.raw`fit\s+analysis`, 'im'),
+  new RegExp(HEADING_PREFIX + String.raw`positioning`, 'im'),
+  new RegExp(HEADING_PREFIX + String.raw`confidence`, 'im'),
+  SOURCES_HEADING,
 ];
