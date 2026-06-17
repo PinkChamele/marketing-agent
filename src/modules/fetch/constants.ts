@@ -4,6 +4,13 @@ import { SignalGroup } from './types';
 export const SUSPICIOUSLY_SHORT_THRESHOLD = 200;
 export const DEFAULT_TIMEOUT_MS = 30_000;
 
+/** Sent on every own-provider request; some sites reject empty or bot UAs. */
+export const USER_AGENT =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+
+/** Raw-HTML length cap. Pages longer than this are sliced before parsing to bound CPU. */
+export const MAX_HTML_CHARS = 2_000_000;
+
 /**
  * Real-content threshold. A page with a known block signal AND less than
  * 3x this many characters is treated as blocked. A long article that
