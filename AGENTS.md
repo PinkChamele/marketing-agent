@@ -99,7 +99,7 @@ Models are selected per role in `src/modules/model/`, via comma-separated env po
 - `MODEL_SYNTHESIZER_POOL` — synthesizer (final report; quality matters most here)
 - `MODEL_CHEAP_POOL` — scorer judges
 
-Routing is **direct provider** (no gateway): researcher + judges on Google Gemini, synthesizer on Anthropic Claude. Mastra reads `ANTHROPIC_API_KEY` / `GOOGLE_API_KEY` from the environment. Verify model IDs with the provider-registry script. Never hardcode keys or model strings in agents.
+Routing is **direct provider** (no gateway): researcher + synthesizer on Anthropic Claude (Haiku for the high-volume research loop, Sonnet for the final report), scorer judges on Google Gemini. Mastra reads `ANTHROPIC_API_KEY` / `GOOGLE_API_KEY` from the environment. Verify model IDs with the provider-registry script. Never hardcode keys or model strings in agents.
 
 ## Output contract
 
