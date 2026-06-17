@@ -1,6 +1,6 @@
 import { SearchProviderName } from './enums/provider.enum';
 import * as Providers from './factory';
-import { deprioritizeGated } from './domain-presets';
+import { deprioritizeGated, withDefaultExcludes } from './domain-presets';
 import type { SearchQuery, SearchResult } from './types';
 
 export type { SearchQuery, SearchResult, SearchProvider } from './types';
@@ -14,7 +14,7 @@ export async function search(
   options: SearchOptions = {},
 ): Promise<SearchResult[]> {
   const provider = Providers.get(options.provider);
-  const results = await provider.search(query);
+  const results = await provider.search(withDefaultExcludes(query));
 
   return deprioritizeGated(results);
 }
