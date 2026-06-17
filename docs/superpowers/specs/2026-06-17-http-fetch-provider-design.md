@@ -64,8 +64,8 @@ provider always first. With no Firecrawl key the chain is `[own]`.
   3. If the `Content-Type` header does not include `text/html` (or xhtml) → throw
      `FetchError` (non-HTML such as PDF is out of scope; the chain records it as a
      gap). A missing Content-Type is treated as HTML (best effort).
-  4. Read the body as text, capped at `MAX_HTML_BYTES`; if the response exceeds
-     the cap, use the truncated text (don't fail).
+  4. Read the body as text; if it is longer than `MAX_HTML_CHARS`, slice to the
+     cap and continue (don't fail) — bounds CPU on huge pages.
   5. `parseHTML(html)` (linkedom) → `document`.
   6. `new Readability(document).parse()` → `article | null`.
   7. If `article` is null or `article.content` is empty/whitespace → throw
@@ -91,7 +91,7 @@ best-effort regardless.
 Add:
 - `USER_AGENT` — a realistic desktop browser UA string (some sites reject empty
   or bot UAs).
-- `MAX_HTML_BYTES` — raw-HTML read cap (e.g. 5 MB) to bound memory on huge pages.
+- `MAX_HTML_CHARS` — raw-HTML length cap (e.g. 2,000,000 chars) to bound CPU on huge pages.
 
 `DEFAULT_TIMEOUT_MS` (already present) is reused for the request timeout.
 
