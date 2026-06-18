@@ -113,21 +113,16 @@ the relevant subset — primary government first, then analyst / consulting
   - **SEC filings & official corporate**: sec.gov, investor.* / ir.*
     subdomains of named incumbents, official company press releases
   - **Analyst firms**: gartner.com, forrester.com, idc.com,
-    everestgroup.com, hfsresearch.com
+    everestgrp.com, hfsresearch.com
   - **Consulting publications**: deloitte.com, mckinsey.com, bcg.com,
     bain.com, capgemini.com, accenture.com (insights / research articles
     only — NOT /services/ or /solutions/ marketing pages)
   - **Trade press**: healthcareitnews.com, fiercehealthcare.com,
     beckershospitalreview.com, himss.org, modernhealthcare.com, statnews.com
 
-**Always exclude** (pass in \`excludeDomains\` on every search):
-
-  - SEO market-report vendors: imarcgroup.com, market.us, sphericalinsights.com,
-    snsinsider.com, grandviewresearch.com, mordorintelligence.com,
-    marketsandmarkets.com, precedenceresearch.com, fortunebusinessinsights.com
-  - Vendor-marketing pages and "best-of" listicles: sumatosoft.com,
-    belitsoft.com, dashtech.io, softwareexpertsindia.com, clutch.co,
-    goodfirms.co, designrush.com, techbehemoths.com
+Low-signal sources (SEO market-report vendors, vendor-marketing
+"best-of" listicles) are filtered out of every search automatically —
+you do not need to list them in \`excludeDomains\`.
 
 # Budget
 
